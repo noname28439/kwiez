@@ -1,26 +1,31 @@
 <script>
-	export let name;
+	import Header from "./components/Header.svelte";
+	import EventProgress from "./components/EventProgress.svelte";
+	import QuestionCard from "./components/QuestionCard.svelte";
 </script>
 
 <main>
-	<h1>Hello {name}!</h1>
-	<p>Das ist ein TEsssssssst!</p>
-	<p>Visit the <a href="https://svelte.dev/tutorial">Svelte tutorial</a> to learn how to build Svelte apps.</p>
+	<Header />
+	<div id="EventProgress">
+		<EventProgress />
+	</div>
+	<div id="QuestionCard">
+		<QuestionCard />
+	</div>
 </main>
 
 <style>
 	main {
-		text-align: center;
-		padding: 1em;
-		max-width: 240px;
-		margin: 0 auto;
+		margin: 0 1em;
+		margin-top: 1em;
 	}
 
-	h1 {
-		color: #ff3e00;
-		text-transform: uppercase;
-		font-size: 4em;
-		font-weight: 100;
+	#EventProgress {
+		margin-top: 2em;
+	}
+
+	#QuestionCard {
+		margin-top: 2em;
 	}
 
 	@media (min-width: 640px) {
