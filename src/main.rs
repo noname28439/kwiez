@@ -1,18 +1,19 @@
 mod db;
 
 use std::env;
+use std::sync::{Arc, Mutex};
 use dotenv::dotenv;
-use serde_json::json;
+use serde_json::{json, Value};
 use warp::Filter;
 use warp::http::Uri;
-use crate::db::DatabaseConnection;
+use crate::db::{AuthToken, DatabaseConnection};
 
 #[tokio::main]
 async fn main() {
     dotenv().ok();
 
     let db_creds = env::var("DB_CREDS").expect("Environment variable DB_CREDS not set");
-    let mut db = DatabaseConnection::new(db_creds);
+    let mut db = Arc::new(Mutex::new(DatabaseConnection::new(db_creds)));
 
     // let res = db.await.client.query("select * from test;", &[]).await.unwrap();
     // println!("res: {:?}", res);
@@ -30,8 +31,8 @@ async fn main() {
     let ranking_ep = warp::path!("ranking").and(warp::body::json()).map(|body: serde_json::Value| {
         warp::reply::json(&"not implemented yet")
     });
-    let current_question_ep = warp::path!("cq").and(warp::body::json()).map(|body: serde_json::Value| {
-        warp::reply::json(&"not implemented yet")
+    let current_question_ep = warp::path!("cq").and(warp::body::json()).map(|body:Value| {
+        warp::reply::json(&"test")
     });
 
     let public_route = warp::any().and(warp::fs::dir("./frontend/public"));
