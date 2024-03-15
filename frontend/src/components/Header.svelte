@@ -4,12 +4,16 @@
 
 <main>
     <div id="header">
-        <div class="iconBox">
-            <ion-icon name="stats-chart"></ion-icon>
-        </div>
-        <div class="iconBox">
-            <ion-icon name="settings"></ion-icon>
-        </div>
+        <button id="divBtn">
+            <div class="iconBox">
+                <ion-icon name="stats-chart"></ion-icon>
+            </div>
+        </button>
+        <button id="divBtn">
+            <div class="iconBox">
+                <ion-icon name="settings"></ion-icon>
+            </div>
+        </button>
     </div>
 
     <h1>Schnitzeljagd</h1>
@@ -62,5 +66,17 @@
 
     #aegEvent p {
         font-weight: 600;
+    }
+
+    #divBtn {
+        border-width: 0;
+        border-color: var(--background-color);
+        border-radius: 25%;
+        padding: 0.5em;
+        margin: 0;
+    }
+
+    #divBtn:hover {
+        cursor: pointer;
     }
 </style>

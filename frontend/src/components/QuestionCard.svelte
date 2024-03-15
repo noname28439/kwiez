@@ -7,6 +7,10 @@
             </div>
         </div>
         <p id="questionTxt">Wer ist eine Taube?</p>
+
+        <textarea placeholder="Antwort hier eingeben..." />
+
+        <button id="submitBtn">OK</button>
     </div>
 </main>
 
@@ -40,6 +44,8 @@
         box-shadow: 0px 4px 17.8px rgba(0, 0, 0, 0.25);
 
         background-color: rgba(0, 0, 0, 0.53);
+
+        backdrop-filter: blur(20.3px) contrast(100%);
         -webkit-backdrop-filter: blur(20.3px) contrast(100%);
     }
 
@@ -74,5 +80,38 @@
 
     .topDifficultyEasy {
         background-color: rgba(18, 146, 46, 0.53);
+    }
+
+    textarea {
+        margin-top: 1em;
+        font-weight: 800;
+        font-family: "Manrope", sans-serif;
+        width: 100%;
+        border-radius: 1em;
+        height: 200px;
+        padding: 1.2em;
+
+        box-shadow: 0px 4px 0px rgba(0, 0, 0, 0.25);
+    }
+
+    #submitBtn {
+        width: 100%;
+        height: 3em;
+        border-radius: 1em;
+        font-weight: 800;
+        font-family: "Manrope", sans-serif;
+        color: white;
+        background-color: rgba(0, 0, 0, 0.54);
+        border-width: 0;
+        box-shadow: 0px 4px 0px rgba(0, 0, 0, 0.25);
+    }
+
+    #submitBtn:hover {
+        background-color: rgba(0, 0, 0, 0.74);
+        /*box-shadow: 0px 0px 0px rgba(0, 0, 0, 0.25);
+        transform: translate(0px, 4px);
+        -webkit-transform: translate(0px, 4px);
+        transition: 0.1s;*/
+        cursor: pointer;
     }
 </style>
