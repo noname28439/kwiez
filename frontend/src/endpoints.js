@@ -16,5 +16,3 @@ export async function useEndpoint(method, data){
     }
 
 }
-
-window.uEP = useEndpoint; // for debugging purposes
