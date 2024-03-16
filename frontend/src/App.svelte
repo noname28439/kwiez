@@ -5,12 +5,14 @@
 </script>
 
 <main>
-	<Header />
-	<div id="EventProgress">
-		<EventProgress />
-	</div>
-	<div id="QuestionCard">
-		<QuestionCard />
+	<div id="wrapper">
+		<Header />
+		<div id="EventProgress">
+			<EventProgress />
+		</div>
+		<div id="QuestionCard">
+			<QuestionCard />
+		</div>
 	</div>
 </main>
 
@@ -30,7 +32,14 @@
 
 	@media (min-width: 640px) {
 		main {
-			max-width: none;
+			width: 100%;
+			justify-content: center;
+		}
+
+		#wrapper {
+			max-width: 640px;
+			margin-left: auto;
+			margin-right: auto;
 		}
 	}
 </style>

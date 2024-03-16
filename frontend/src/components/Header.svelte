@@ -1,15 +1,34 @@
 <script>
     import "./ColorPalette.svelte";
+    import Modal from "./modal/Modal.svelte";
+    import RankingModal from "./modal/RankingModal.svelte";
+    import SettingsModal from "./modal/SettingsModal.svelte";
+
+    let showModal = false;
+    let selectedModal = "settings";
 </script>
 
 <main>
     <div id="header">
-        <button id="divBtn">
+        <button
+            id="divBtn"
+            on:click={() => {
+                showModal = true;
+                selectedModal = "rankings";
+            }}
+        >
             <div class="iconBox">
                 <ion-icon name="stats-chart"></ion-icon>
             </div>
         </button>
-        <button id="divBtn">
+
+        <button
+            id="divBtn"
+            on:click={() => {
+                showModal = true;
+                selectedModal = "settings";
+            }}
+        >
             <div class="iconBox">
                 <ion-icon name="settings"></ion-icon>
             </div>
@@ -27,6 +46,18 @@
         <p style="color: #dbdbdb;">AEG Event</p>
     </div>
 </main>
+
+{#if selectedModal == "settings"}
+    <Modal bind:showModal>
+        <h2 slot="header">Einstellungen</h2>
+        <SettingsModal />
+    </Modal>
+{:else if selectedModal == "rankings"}
+    <Modal bind:showModal>
+        <h2 slot="header">Rankings</h2>
+        <RankingModal />
+    </Modal>
+{/if}
 
 <style>
     main {
