@@ -1,7 +1,8 @@
 //example: await useEndpoint("answer", {"payload": "this", "name": "Kevon"})
 
-export async function useEndpoint(route, payload){
-    const response = await fetch("/"+route, {
+export async function useEndpoint(method, data){
+    let payload = [method, data]
+    const response = await fetch("/api", {
         method: "POST",
         headers: {"Content-Type": "application/json"},
         body: JSON.stringify(payload)

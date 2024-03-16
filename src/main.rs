@@ -1,50 +1,56 @@
 mod db;
+mod question;
 
 use std::env;
+use std::future::Future;
+use std::str::FromStr;
 use std::sync::{Arc, Mutex};
+use deadpool_postgres::{Manager, Pool, PoolConfig};
 use dotenv::dotenv;
 use serde_json::{json, Value};
+use tokio::runtime::Runtime;
+use tokio::task::block_in_place;
+use tokio_postgres::config;
 use warp::Filter;
 use warp::http::Uri;
-use crate::db::{AuthToken, DatabaseConnection};
+use crate::db::{AuthToken};
+
+async fn ep(body:Value, pool:Pool) -> Result<impl warp::Reply, std::convert::Infallible>{
+    let method = &body[0].as_str().expect("no method specified...");
+    let data = &body[1];
+
+    let client = pool.get().await.unwrap();
+
+    match *method {
+        "cq" => {
+            let res = db::current_question(client, AuthToken("".to_string())).await;
+            return Ok(warp::reply::json(&res));
+        },
+        _=>{
+            return Ok(warp::reply::json(&"invalid method"))
+        }
+    }
+
+    Ok(warp::reply::json(&"test"))
+}
 
 #[tokio::main]
 async fn main() {
     dotenv().ok();
 
     let db_creds = env::var("DB_CREDS").expect("Environment variable DB_CREDS not set");
-    let mut db = Arc::new(Mutex::new(DatabaseConnection::new(db_creds)));
+    let cfg = tokio_postgres::Config::from_str(&*db_creds).unwrap();
+    let mgr = Manager::new(cfg, tokio_postgres::NoTls);
+    let pool = Pool::builder(mgr).config(PoolConfig::new(16)).max_size(16).build().unwrap();
 
-    // let res = db.await.client.query("select * from test;", &[]).await.unwrap();
-    // println!("res: {:?}", res);
 
-    let answer_ep = warp::path!("answer").and(warp::body::json()).map(|body: serde_json::Value| {
-        let response = json!({"ok":true, "name": body["name"]});
-        warp::reply::json(&response)
-    });
-    let stats_ep = warp::path!("stats").and(warp::body::json()).map(|body: serde_json::Value| {
-        warp::reply::json(&"not implemented yet")
-    });
-    let rename_ep = warp::path!("rename").and(warp::body::json()).map(|body: serde_json::Value| {
-        warp::reply::json(&"not implemented yet")
-    });
-    let ranking_ep = warp::path!("ranking").and(warp::body::json()).map(|body: serde_json::Value| {
-        warp::reply::json(&"not implemented yet")
-    });
-    let current_question_ep = warp::path!("cq").and(warp::body::json()).map(|body:Value| {
-        warp::reply::json(&"test")
-    });
+    let db_filter = warp::any().map(move ||{pool.clone()});
 
+    let api_ep = warp::path!("api").and(warp::body::json()).and(db_filter.clone()).and_then(ep);
     let public_route = warp::any().and(warp::fs::dir("./frontend/public"));
     let fallback_route = warp::any().map(|| warp::redirect(Uri::from_static("/index.html")));
 
-    let routes = public_route
-        .or(answer_ep)
-        .or(stats_ep)
-        .or(rename_ep)
-        .or(ranking_ep)
-        .or(current_question_ep)
-        .or(fallback_route);
+    let routes = public_route.or(api_ep).or(fallback_route);
 
     warp::serve(routes).run(([0, 0, 0, 0], 8000)).await;
 }
