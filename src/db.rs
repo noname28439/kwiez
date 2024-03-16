@@ -1,38 +1,13 @@
-use tokio_postgres::{Client, NoTls};
-
-enum Schwierigkeit {
-    Einfach,
-    Mittel,
-    Schwer,
-}
-
-pub struct AuthToken(String);
-pub struct Frage(String, Schwierigkeit);
+use deadpool_postgres::{Object};
+use crate::question::{Frage, Schwierigkeit};
 
 
-pub struct DatabaseConnection {
-    connection: String,
-    pub client: Client,
-}
+pub struct AuthToken(pub String);
 
-impl DatabaseConnection {
-    pub async fn new(connection: String) -> DatabaseConnection {
-        let (client, conn) = tokio_postgres::connect(&connection, NoTls).await.unwrap();
 
-        tokio::spawn(async move {
-            if let Err(e) = conn.await {
-                eprintln!("connection error: {}", e);
-            }
-        });
+pub async fn current_question(client: Object, token:AuthToken) -> Frage {
+    let x = client.query("SELECT * from test;", &[]).await;
 
-        DatabaseConnection {
-            connection,
-            client
-        }
-    }
-
-    pub async fn get_next_question(&mut self, token:AuthToken) -> Frage {
-        return Frage("Was ist 1+1?".to_string(), Schwierigkeit::Einfach);
-    }
-
+    println!("X: {:?}", x);
+    return Frage("Was ist 1+1?".to_string(), Schwierigkeit::Einfach);
 }
