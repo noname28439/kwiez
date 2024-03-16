@@ -1,7 +1,9 @@
 //example: await useEndpoint("answer", {"payload": "this", "name": "Kevon"})
 
+import {authToken} from "./authentication.js";
+
 export async function useEndpoint(method, data){
-    let payload = [method, data]
+    let payload = [method, authToken, data]
     const response = await fetch("/api", {
         method: "POST",
         headers: {"Content-Type": "application/json"},
@@ -14,3 +16,5 @@ export async function useEndpoint(method, data){
     }
 
 }
+
+window.uEP = useEndpoint; // for debugging purposes

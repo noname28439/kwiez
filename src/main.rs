@@ -17,7 +17,10 @@ use crate::db::{AuthToken};
 
 async fn ep(body:Value, pool:Pool) -> Result<impl warp::Reply, std::convert::Infallible>{
     let method = &body[0].as_str().expect("no method specified...");
-    let data = &body[1];
+    let auth_token = &body[1];
+    let data = &body[2];
+
+    println!("Auth token: {:?}", auth_token);
 
     let client = pool.get().await.unwrap();
 
