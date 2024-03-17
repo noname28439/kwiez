@@ -36,16 +36,19 @@ async fn ep(body:Value, pool:Pool, context:Arc<ExecutionContext>) -> Result<impl
             Ok(warp::reply::json(&respose))
         },
         "stats" => {
-            Ok(warp::reply::json(&"not implemented yet"))
+            Ok(warp::reply::json(&json!({
+                "count": &context.question_set.count(),
+                "progress": db::get_progress(&client, &auth_token).await,
+                "top_progress": 0, //TODO: Implement top progress
+            })))
 
         },
         "rename" => {
-            Ok(warp::reply::json(&"not implemented yet"))
-
+            db::set_nickname(&client, &auth_token, &data["nickname"].as_str().expect("no nickname specified...").to_string()).await;
+            Ok(warp::reply::json(&"ok"))
         },
         "ranking" => {
             Ok(warp::reply::json(&"not implemented yet"))
-
         },
         "cq" => {
             let cq = db::current_question(&client, &auth_token, &context.question_set).await;

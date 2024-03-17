@@ -16,8 +16,8 @@ pub struct Frage{
 }
 
 impl Frage{
-    pub fn new(frage:String, antwort:String, schwierigkeit:Schwierigkeit) -> Self{
-        Frage{
+    pub fn new(frage:String, antwort:String, schwierigkeit:Schwierigkeit) -> Self {
+        Frage {
             frage,
             antwort,
             schwierigkeit
@@ -42,5 +42,9 @@ impl FragenSet{
 
     pub fn n_te_frage(&self, n:i32) -> Arc<Frage>{
         return self.fragen[n as usize].clone();
+    }
+
+    pub fn count(&self) -> usize{
+        self.fragen.len()
     }
 }

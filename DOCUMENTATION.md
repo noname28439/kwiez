@@ -1,12 +1,12 @@
 # Endpoints
 
-| Methode | Payload      | Respose                                                                            | Beschreibung                                                                         |
-|---------|--------------|------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------|
-| answer  | antwort:str  | correct:bool<br/> timeout:int<br/> next:Frage                                      | Eine Antwort ausprobieren (next wird nur zurückgegeben wenn die Antwort richtig war) |
-| stats   |              | FragenAnzahl:int<br/>Aktueller Fortschritt:int<br/> Fortschritt Bester Spieler:int | Serverdaten fetchen                                                                  |
-| rename  | nickname:str |                                                                                    | Legt den Nicknamen des Spielers fest                                                 |
-| ranking |              | topSpieler:list(str)                                                               | Gibt die Top Spieler zurück                                                          |
-| cq      |              | _:Frage                                                                            | Gibt die nächste Frage für den Accounts zurück                                       |
+| Methode | Payload      | Respose                                                                            | Beschreibung                                                                                     |
+|---------|--------------|------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------|
+| answer  | antwort:str  | correct:bool<br/> timeout:int<br/> next:Frage                                      | Eine Antwort ausprobieren (next wird nur zurückgegeben wenn die Antwort richtig war)             |
+| stats   |              | FragenAnzahl:int<br/>Aktueller Fortschritt:int<br/> Fortschritt Bester Spieler:int | Serverdaten fetchen                                                                              |
+| rename  | nickname:str | "ok"                                                                               | Legt den Nicknamen des Spielers fest (geht erst nachdem er eine Frage richtig beantwortet hat) |
+| ranking |              | topSpieler:list(str)                                                               | Gibt die Top Spieler zurück                                                                      |
+| cq      |              | _:Frage                                                                            | Gibt die nächste Frage für den Accounts zurück                                                   |
 
 ### Korrektur:
 Alle Anfragen gehen auf den /api Endpoint und die ehemalige Route wird als Methode an 0. Stelle in einer Liste im Request Body übergeben.<br>

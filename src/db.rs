@@ -12,15 +12,23 @@ async fn token_exits(client:&Object, token:&AuthToken) -> bool{
     x.len()!=0
 }
 
-async fn get_progress(client:&Object, token:&AuthToken) -> i32{
+async fn create_user(client: &Object, token:&AuthToken){
+    client.query("insert into kwiez_users values ($1);", &[&token.0]).await.expect("Could not create user");
+}
+
+async fn increase_progress(client: &Object, token:&AuthToken){
+    client.query("update kwiez_users set progress = progress + 1 where token=$1;", &[&token.0]).await.expect("Could not increase progress");
+}
+
+pub async fn get_progress(client:&Object, token:&AuthToken) -> i32{
     let x = client.query("SELECT progress FROM kwiez_users WHERE token = $1;", &[&token.0]).await.unwrap();
     match x.get(0) {Some(v) => v.get(0),
         None=>0
     }
 }
 
-pub async fn increase_progress(client: &Object, token:&AuthToken){
-    client.query("update kwiez_users set progress = progress + 1 where token=$1;", &[&token.0]).await.expect("Could not increase progress");
+pub async fn set_nickname(client: &Object, token:&AuthToken, nickname:&String){
+    client.query("update kwiez_users set nickname = $1 where token=$2;", &[&nickname, &token.0]).await.expect("Could not set nickname");
 }
 
 pub async fn current_question(client: &Object, token:&AuthToken, questions:&FragenSet) -> Arc<Frage> {
@@ -32,7 +40,10 @@ pub async fn check_answer(client: &Object, token: &AuthToken, answer:&String, qu
     let progress = get_progress(client, token).await;
     let frage = questions.n_te_frage(progress);
     let correct = compare_answers(&frage.antwort, answer);
-    if correct {increase_progress(client, token).await}//TODO: Don't increase if it was the last answer
+    if correct {
+        if progress == 0 {create_user(client, token).await;}
+        increase_progress(client, token).await //TODO: Don't increase if it was the last answer
+    }
     correct
 }
 
