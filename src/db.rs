@@ -31,6 +31,16 @@ pub async fn set_nickname(client: &Object, token:&AuthToken, nickname:&String){
     client.query("update kwiez_users set nickname = $1 where token=$2;", &[&nickname, &token.0]).await.expect("Could not set nickname");
 }
 
+//TODO: Maybe cache the ranking
+pub async fn ranking(client: &Object, token:&AuthToken, questions:&FragenSet) -> Vec<(String, i32)> {
+    let res = client.query("select nickname, progress from kwiez_users where nickname is not null order by progress desc;", &[]).await.expect("Could not create ranking");
+    let mut ranking:Vec<(String, i32)> = Vec::new();
+    for row in res{
+        ranking.push((row.get(0), row.get(1)));
+    }
+    ranking
+}
+
 pub async fn current_question(client: &Object, token:&AuthToken, questions:&FragenSet) -> Arc<Frage> {
     let progress = get_progress(client, token).await;
     questions.n_te_frage(progress)

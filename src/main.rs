@@ -48,7 +48,8 @@ async fn ep(body:Value, pool:Pool, context:Arc<ExecutionContext>) -> Result<impl
             Ok(warp::reply::json(&"ok"))
         },
         "ranking" => {
-            Ok(warp::reply::json(&"not implemented yet"))
+            let ranking = db::ranking(&client, &auth_token, &context.question_set).await;
+            Ok(warp::reply::json(&ranking))
         },
         "cq" => {
             let cq = db::current_question(&client, &auth_token, &context.question_set).await;
