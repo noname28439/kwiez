@@ -40,8 +40,8 @@ impl FragenSet{
         }
     }
 
-    pub fn n_te_frage(&self, n:i32) -> Arc<Frage>{
-        return self.fragen[n as usize].clone();
+    pub fn n_te_frage(&self, n:i32) -> Option<Arc<Frage>>{
+        Some(self.fragen[n as usize].clone())
     }
 
     pub fn count(&self) -> usize{

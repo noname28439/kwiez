@@ -43,16 +43,20 @@ pub async fn ranking(client: &Object, token:&AuthToken, questions:&FragenSet) ->
 
 pub async fn current_question(client: &Object, token:&AuthToken, questions:&FragenSet) -> Arc<Frage> {
     let progress = get_progress(client, token).await;
-    questions.n_te_frage(progress)
+    questions.n_te_frage(progress).expect("Invalid progress")
 }
 
 pub async fn check_answer(client: &Object, token: &AuthToken, answer:&String, questions:&FragenSet) -> bool{
     let progress = get_progress(client, token).await;
-    let frage = questions.n_te_frage(progress);
+    let frage = questions.n_te_frage(progress).expect("Invalid progress");
     let correct = compare_answers(&frage.antwort, answer);
     if correct {
         if progress == 0 {create_user(client, token).await;}
-        increase_progress(client, token).await //TODO: Don't increase if it was the last answer
+        if progress+1 < questions.count() as i32 {
+            increase_progress(client, token).await;
+        }else{
+            println!("winner: {}", token.0);
+        }
     }
     correct
 }
