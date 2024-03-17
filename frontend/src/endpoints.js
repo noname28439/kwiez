@@ -1,4 +1,10 @@
-//example: await useEndpoint("answer", {"payload": "this", "name": "Kevon"})
+/*
+Beispiel Request für jeden implementierten Endpoint:
+
+await useEndpoint("cq", {});
+await useEndpoint("answer", {answer: "Das ist die Antwort"});
+
+*/
 
 import {authToken} from "./authentication.js";
 

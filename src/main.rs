@@ -5,7 +5,7 @@ use std::sync::Arc;
 
 use deadpool_postgres::{Manager, Pool, PoolConfig};
 use dotenv::dotenv;
-use serde_json::Value;
+use serde_json::{json, Value};
 use warp::Filter;
 use warp::http::Uri;
 
@@ -24,8 +24,16 @@ async fn ep(body:Value, pool:Pool, context:Arc<ExecutionContext>) -> Result<impl
 
     return match method {
         "answer" => {
-            Ok(warp::reply::json(&"not implemented yet"))
+            let correct = db::check_answer(&client, &auth_token, &data["answer"].as_str().expect("no answer specified...").to_string(), &context.question_set).await;
+            let mut respose = json!({
+                "correct": correct,
+                "timeout": 0
+            });
+            if correct{
+                respose["next"] = json!(*db::current_question(&client, &auth_token, &context.question_set).await);
+            }
 
+            Ok(warp::reply::json(&respose))
         },
         "stats" => {
             Ok(warp::reply::json(&"not implemented yet"))
