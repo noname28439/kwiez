@@ -17,8 +17,8 @@
         /*background-color: #5b59d5;*/
         background-image: -webkit-linear-gradient(
             0deg,
-            rgba(142, 114, 222, 1) 0%,
-            rgba(55, 71, 212, 1) 100%
+            var(--linearGradient-purple1) 0%,
+            var(--linearGradient-purple2) 100%
         );
         border-radius: 7px;
         box-shadow: 0px 1px 4px rgba(91, 89, 213, 0.5);
@@ -37,8 +37,8 @@
         /*background-color: #d98651;*/
         background-image: -webkit-linear-gradient(
             0deg,
-            rgba(222, 185, 114, 1) 0%,
-            rgba(212, 93, 55, 1) 100%
+            var(--linearGradient-orange1) 0%,
+            var(--linearGradient-orange2) 100%
         );
 
         border-radius: 7px;

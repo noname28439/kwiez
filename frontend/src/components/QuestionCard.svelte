@@ -20,8 +20,8 @@
 
         background-image: -webkit-linear-gradient(
             -45deg,
-            rgba(142, 114, 222, 1) 0%,
-            rgba(55, 71, 212, 1) 100%
+            var(--linearGradient-purple1) 0%,
+            var(--linearGradient-purple2) 100%
         );
 
         border-radius: 3em;

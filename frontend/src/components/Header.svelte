@@ -5,7 +5,7 @@
     import SettingsModal from "./modal/SettingsModal.svelte";
 
     let showModal = false;
-    let selectedModal = "settings";
+    let selectedModal = "rankings";
 </script>
 
 <main>
