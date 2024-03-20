@@ -2,6 +2,9 @@
 	import Header from "./components/Header.svelte";
 	import EventProgress from "./components/EventProgress.svelte";
 	import QuestionCard from "./components/QuestionCard.svelte";
+	import {useEndpoint} from "./endpoints.js";
+
+	window.uEP = useEndpoint;	// for debugging
 </script>
 
 <main>

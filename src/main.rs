@@ -1,19 +1,26 @@
-use std::env;
+use std::collections::HashMap;
+use std::{env, thread};
 use std::future::Future;
 use std::str::FromStr;
 use std::sync::Arc;
+use std::thread::spawn;
+use std::time::Duration;
 
+use chrono::DateTime;
 use deadpool_postgres::{Manager, Pool, PoolConfig};
 use dotenv::dotenv;
 use serde_json::{json, Value};
+use tokio::sync::Mutex;
 use warp::Filter;
 use warp::http::Uri;
 
 use crate::db::AuthToken;
 use crate::question::{Frage, FragenSet};
+use crate::timeouts::TimeoutManager;
 
 mod db;
 mod question;
+mod timeouts;
 
 async fn ep(body:Value, pool:Pool, context:Arc<ExecutionContext>) -> Result<impl warp::Reply, std::convert::Infallible>{
     let method = *&body[0].as_str().expect("no method specified...");
@@ -24,13 +31,14 @@ async fn ep(body:Value, pool:Pool, context:Arc<ExecutionContext>) -> Result<impl
 
     return match method {
         "answer" => {
-            let correct = db::check_answer(&client, &auth_token, &data["answer"].as_str().expect("no answer specified...").to_string(), &context.question_set).await;
+            let answer = data["answer"].as_str().expect("no answer specified...").to_string();
+            let correct = db::check_answer(&client, &auth_token, &answer, context.clone()).await;
             let mut respose = json!({
                 "correct": correct,
                 "timeout": 0
             });
             if correct{
-                respose["next"] = json!(*db::current_question(&client, &auth_token, &context.question_set).await);
+                respose["next"] = json!(*db::current_question(&client, &auth_token, context.clone()).await);
             }
 
             Ok(warp::reply::json(&respose))
@@ -39,20 +47,22 @@ async fn ep(body:Value, pool:Pool, context:Arc<ExecutionContext>) -> Result<impl
             Ok(warp::reply::json(&json!({
                 "count": &context.question_set.count(),
                 "progress": db::get_progress(&client, &auth_token).await,
-                "top_progress": 0, //TODO: Implement top progress
+                "top_progress": db::retrieve_ranking(&client).await[0].1,
             })))
 
         },
         "rename" => {
-            db::set_nickname(&client, &auth_token, &data["nickname"].as_str().expect("no nickname specified...").to_string()).await;
+            let nickname = data["nickname"].as_str().expect("no nickname specified...").to_string();
+            if nickname.len()>20{return Ok(warp::reply::json(&"nickname too long"))}
+            db::set_nickname(&client, &auth_token, &nickname).await;
             Ok(warp::reply::json(&"ok"))
         },
         "ranking" => {
-            let ranking = db::ranking(&client, &auth_token, &context.question_set).await;
+            let ranking = db::retrieve_ranking(&client).await;
             Ok(warp::reply::json(&ranking))
         },
         "cq" => {
-            let cq = db::current_question(&client, &auth_token, &context.question_set).await;
+            let cq = db::current_question(&client, &auth_token, context.clone()).await;
             Ok(warp::reply::json(&*cq))
         },
         _ => {
@@ -62,7 +72,8 @@ async fn ep(body:Value, pool:Pool, context:Arc<ExecutionContext>) -> Result<impl
 }
 
 pub struct ExecutionContext {
-    question_set: Arc<FragenSet>
+    question_set: Arc<FragenSet>,
+    timeouts: Arc<Mutex<HashMap<String, u8>>>
 }
 
 #[tokio::main]
@@ -70,9 +81,11 @@ async fn main() {
     dotenv().ok();
 
     let qset = Arc::new(FragenSet::dummie());
+    let tmgr = Arc::new(Mutex::new(HashMap::new()));
 
     let execution_context = Arc::new(ExecutionContext {
-        question_set: qset
+        question_set: qset,
+        timeouts: tmgr.clone()
     });
 
 
@@ -86,6 +99,7 @@ async fn main() {
     let context_filter = warp::any().map(move ||{Arc::clone(&execution_context)});
 
     let api_ep = warp::path!("api")
+        .and(warp::body::content_length_limit(1024 * 32))
         .and(warp::body::json())
         .and(db_filter.clone())
         .and(context_filter.clone())

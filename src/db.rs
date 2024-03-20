@@ -1,11 +1,18 @@
 use std::sync::Arc;
 
 use deadpool_postgres::Object;
+use crate::ExecutionContext;
 
 use crate::question::{Frage, FragenSet};
 
 #[derive(Debug)]
 pub struct AuthToken(pub String);
+
+impl Into<String> for AuthToken{
+    fn into(self) -> String {
+        self.0
+    }
+}
 
 async fn token_exits(client:&Object, token:&AuthToken) -> bool{
     let x = client.query("SELECT 1 FROM kwiez_users WHERE token = $1;", &[&token.0]).await.unwrap();
@@ -32,7 +39,7 @@ pub async fn set_nickname(client: &Object, token:&AuthToken, nickname:&String){
 }
 
 //TODO: Maybe cache the ranking
-pub async fn ranking(client: &Object, token:&AuthToken, questions:&FragenSet) -> Vec<(String, i32)> {
+pub async fn retrieve_ranking(client: &Object) -> Vec<(String, i32)> {
     let res = client.query("select nickname, progress from kwiez_users where nickname is not null order by progress desc;", &[]).await.expect("Could not create ranking");
     let mut ranking:Vec<(String, i32)> = Vec::new();
     for row in res{
@@ -41,13 +48,15 @@ pub async fn ranking(client: &Object, token:&AuthToken, questions:&FragenSet) ->
     ranking
 }
 
-pub async fn current_question(client: &Object, token:&AuthToken, questions:&FragenSet) -> Arc<Frage> {
+pub async fn current_question(client: &Object, token:&AuthToken, context: Arc<ExecutionContext>) -> Arc<Frage> {
     let progress = get_progress(client, token).await;
+    let questions = &context.question_set;
     questions.n_te_frage(progress).expect("Invalid progress")
 }
 
-pub async fn check_answer(client: &Object, token: &AuthToken, answer:&String, questions:&FragenSet) -> bool{
+pub async fn check_answer(client: &Object, token: &AuthToken, answer:&String, context: Arc<ExecutionContext>) -> bool{
     let progress = get_progress(client, token).await;
+    let questions = &context.question_set;
     let frage = questions.n_te_frage(progress).expect("Invalid progress");
     let correct = compare_answers(&frage.antwort, answer);
     if correct {
@@ -57,6 +66,10 @@ pub async fn check_answer(client: &Object, token: &AuthToken, answer:&String, qu
         }else{
             println!("winner: {}", token.0);
         }
+    }else{
+        let mut a = context.timeouts.lock().await;
+        let timeout = a.entry(token.0.clone()).or_insert(0);
+        *timeout += 1;
     }
     correct
 }
