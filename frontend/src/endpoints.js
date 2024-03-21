@@ -3,9 +3,9 @@ Beispiel Request für jeden implementierten Endpoint:
 
 await useEndpoint("cq", {});
 await useEndpoint("answer", {answer: "Das ist die Antwort"});
-await window.uEP("stats", {})
-await window.uEP("rename", {nickname:"Herbert"})
-await window.uEP("ranking", {})
+await useEndpoint("stats", {})
+await useEndpoint("rename", {nickname:"Herbert"})
+await useEndpoint("ranking", {})
 
 */
 
