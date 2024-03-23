@@ -1,13 +1,40 @@
+use std::fs::File;
+use std::io::{BufRead, BufReader};
+use std::str::FromStr;
 use std::sync::Arc;
 use serde::Serialize;
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub enum Schwierigkeit {
-    Einfach,
+    Leicht,
     Mittel,
     Schwer,
 }
-#[derive(Serialize)]
+
+impl Schwierigkeit{
+    pub fn i(&self) -> i32{
+        match self {
+            Schwierigkeit::Leicht => 0,
+            Schwierigkeit::Mittel => 1,
+            Schwierigkeit::Schwer => 2
+        }
+    }
+}
+
+impl FromStr for Schwierigkeit{
+    type Err = ();
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "Leicht" => Ok(Schwierigkeit::Leicht),
+            "Mittel" => Ok(Schwierigkeit::Mittel),
+            "Schwer" => Ok(Schwierigkeit::Schwer),
+            _ => Err(())
+        }
+    }
+}
+
+#[derive(Serialize, Debug)]
 pub struct Frage{
     pub frage: String,
     #[serde(skip_serializing)]
@@ -25,16 +52,51 @@ impl Frage{
     }
 }
 
+
 pub struct FragenSet{
     fragen: Vec<Arc<Frage>>
 }
 
 impl FragenSet{
-    pub fn dummie() -> Self{
+    pub fn _dummie() -> Self{
         let mut fragen:Vec<Arc<Frage>> = Vec::new();
-        fragen.push(Arc::new(Frage::new("Test".to_string(), "Penis".to_string(), Schwierigkeit::Einfach)));
+        fragen.push(Arc::new(Frage::new("Test".to_string(), "Penis".to_string(), Schwierigkeit::Leicht)));
         fragen.push(Arc::new(Frage::new("Ist Leon Toll?".to_string(),"100%".to_string(), Schwierigkeit::Mittel)));
         fragen.push(Arc::new(Frage::new("Eine Hütte hat den Durchmesser 13.4m und eine Seitenfläche von 5 Fuß. Auf ihrem Dach, dass einem Volumen von 3 Litern entspricht befindet sich kein Schornstein. Wie viele Huren passen in die Grage?".to_string(), "Keine".to_string(), Schwierigkeit::Schwer)));
+        FragenSet{
+            fragen
+        }
+    }
+
+    pub fn from_file(reader: BufReader<File>) -> Self{
+        let mut fragen:Vec<Arc<Frage>> = Vec::new();
+
+        for line in reader.lines().skip(1){
+            let line = line.unwrap();
+            let columns:Vec<&str> = line.split(",").collect();
+
+            let build_question = || -> Result<Frage, ()>{
+                let id = columns[0];
+                let difficulty = Schwierigkeit::from_str(columns[1])?;
+                let valid = columns[2]=="Gültig";
+                let question = columns[3];
+                let answer = columns[4];
+
+                Ok(Frage::new(question.to_string(), answer.to_string(), difficulty))
+            };
+
+            match build_question() {
+                Ok(q) => fragen.push(Arc::new(q)),
+                Err(_) => println!("Invalid question ({columns:?})")
+            }
+        }
+
+        //sort by difficulty
+        fragen.sort_by(|a,b| a.schwierigkeit.i().cmp(&b.schwierigkeit.i()));
+
+
+        println!("Loaded {} questions", fragen.len());
+
         FragenSet{
             fragen
         }

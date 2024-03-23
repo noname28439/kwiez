@@ -1,5 +1,7 @@
 use std::env;
 use std::collections::HashMap;
+use std::fs::File;
+use std::io::BufReader;
 use std::str::FromStr;
 use std::sync::Arc;
 use std::time::Duration;
@@ -83,7 +85,8 @@ pub struct ExecutionContext {
 async fn main() {
     dotenv().ok();
 
-    let qset = Arc::new(FragenSet::dummie());
+    let file = File::open("Questions.csv").expect("File not found");
+    let qset = Arc::new(FragenSet::from_file(BufReader::new(file)));
     let tmgr = Arc::new(Mutex::new(HashMap::new()));
 
     let execution_context = Arc::new(ExecutionContext {
