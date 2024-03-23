@@ -1,9 +1,10 @@
 use std::sync::Arc;
 
 use deadpool_postgres::Object;
-use crate::ExecutionContext;
+use serde_json::Value;
 
-use crate::question::{Frage, FragenSet};
+use crate::ExecutionContext;
+use crate::question::Frage;
 
 #[derive(Debug)]
 pub struct AuthToken(pub String);
@@ -31,6 +32,16 @@ pub async fn get_progress(client:&Object, token:&AuthToken) -> i32{
     let x = client.query("SELECT progress FROM kwiez_users WHERE token = $1;", &[&token.0]).await.unwrap();
     match x.get(0) {Some(v) => v.get(0),
         None=>0
+    }
+}
+
+pub async fn get_nickname(client: &Object, token:&AuthToken) -> Value {
+    let res = client.query("select nickname from kwiez_users where token=$1;", &[&token.0]).await.expect("Could not get nickname");
+    match res.get(0){
+        Some(row) => {
+            Value::String(row.get(0))
+        },
+        None => Value::Null
     }
 }
 

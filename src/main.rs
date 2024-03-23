@@ -55,6 +55,7 @@ async fn ep(body:Value, pool:Pool, context:Arc<ExecutionContext>) -> Result<impl
                 "count": &context.question_set.count(),
                 "progress": db::get_progress(&client, &auth_token).await,
                 "top_progress": db::retrieve_ranking(&client).await[0].1,
+                "nickname": db::get_nickname(&client, &auth_token).await
             })))
 
         },
