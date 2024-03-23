@@ -1,12 +1,9 @@
+use std::env;
 use std::collections::HashMap;
-use std::{env, thread};
-use std::future::Future;
 use std::str::FromStr;
 use std::sync::Arc;
-use std::thread::spawn;
 use std::time::Duration;
 
-use chrono::DateTime;
 use deadpool_postgres::{Manager, Pool, PoolConfig};
 use dotenv::dotenv;
 use serde_json::{json, Value};
@@ -15,12 +12,10 @@ use warp::Filter;
 use warp::http::Uri;
 
 use crate::db::AuthToken;
-use crate::question::{Frage, FragenSet};
-use crate::timeouts::TimeoutManager;
+use crate::question::{FragenSet};
 
 mod db;
 mod question;
-mod timeouts;
 
 async fn ep(body:Value, pool:Pool, context:Arc<ExecutionContext>) -> Result<impl warp::Reply, std::convert::Infallible>{
     let method = *&body[0].as_str().expect("no method specified...");
@@ -101,10 +96,10 @@ async fn main() {
         loop {
             tokio::time::sleep(Duration::from_secs(60)).await;
             let mut tmgr = tmgr_clone.lock().await;
-            for (token, v) in tmgr.iter_mut(){
+            for (_token, v) in tmgr.iter_mut(){
                 if *v == 0{continue;}
                 *v -= 1;
-                //println!("dec[{}]: {}", token, v);
+                //println!("dec[{}]: {}", _token, v);
             }
         }
     });
