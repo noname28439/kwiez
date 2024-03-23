@@ -2,7 +2,7 @@
 
 | Methode | Payload      | Respose                                                                            | Beschreibung                                                                                     |
 |---------|--------------|------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------|
-| answer  | antwort:str  | correct:bool<br/> timeout:int<br/> next:Frage                                      | Eine Antwort ausprobieren (next wird nur zurückgegeben wenn die Antwort richtig war)             |
+| answer  | antwort:str  | correct:bool<br/> timeout:int<br/> next:Frage<br/>block:bool                       | Eine Antwort ausprobieren (next wird nur zurückgegeben wenn die Antwort richtig war)             |
 | stats   |              | FragenAnzahl:int<br/>Aktueller Fortschritt:int<br/> Fortschritt Bester Spieler:int | Serverdaten fetchen                                                                              |
 | rename  | nickname:str | "ok"                                                                               | Legt den Nicknamen des Spielers fest (geht erst nachdem er eine Frage richtig beantwortet hat) |
 | ranking |              | topSpieler:list(str)                                                               | Gibt die Top Spieler zurück                                                                      |

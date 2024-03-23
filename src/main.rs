@@ -31,11 +31,18 @@ async fn ep(body:Value, pool:Pool, context:Arc<ExecutionContext>) -> Result<impl
 
     return match method {
         "answer" => {
+            let timeout = *context.timeouts.lock().await.get(&auth_token.0).unwrap_or(&0);
+            let blocked = timeout>1;
             let answer = data["answer"].as_str().expect("no answer specified...").to_string();
-            let correct = db::check_answer(&client, &auth_token, &answer, context.clone()).await;
+
+            let mut correct = false;
+            if !blocked {
+                correct = db::check_answer(&client, &auth_token, &answer, context.clone()).await;
+            }
             let mut respose = json!({
                 "correct": correct,
-                "timeout": 0
+                "timeout": timeout,
+                "block": blocked
             });
             if correct{
                 respose["next"] = json!(*db::current_question(&client, &auth_token, context.clone()).await);
@@ -86,6 +93,19 @@ async fn main() {
     let execution_context = Arc::new(ExecutionContext {
         question_set: qset,
         timeouts: tmgr.clone()
+    });
+
+    let tmgr_clone = tmgr.clone();
+    tokio::spawn(async move {
+        loop {
+            tokio::time::sleep(Duration::from_secs(60)).await;
+            let mut tmgr = tmgr_clone.lock().await;
+            for (token, v) in tmgr.iter_mut(){
+                if *v == 0{continue;}
+                *v -= 1;
+                //println!("dec[{}]: {}", token, v);
+            }
+        }
     });
 
 
