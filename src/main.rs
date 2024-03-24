@@ -19,6 +19,11 @@ mod db;
 mod question;
 mod rq_handler;
 
+pub const BLOCK_TIMEOUT: u8 = 2;
+pub const MAX_NICKNAME_LENGTH: usize = 20;
+pub const MAX_ANSWER_LENGTH: usize = 20;
+pub const QUESTION_FILE: &str = "Questions.tsv";
+
 
 pub struct ExecutionContext {
     question_set: Arc<FragenSet>,
@@ -29,7 +34,7 @@ pub struct ExecutionContext {
 async fn main() {
     dotenv().ok();
 
-    let file = File::open("Questions.tsv").expect("File not found");
+    let file = File::open(QUESTION_FILE).expect("File not found");
     let qset = Arc::new(FragenSet::from_file(BufReader::new(file)));
     let tmgr = Arc::new(Mutex::new(HashMap::new()));
 

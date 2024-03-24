@@ -2,7 +2,7 @@ use std::sync::Arc;
 use deadpool_postgres::{Object, Pool};
 use serde_json::{json, Value};
 use crate::db::AuthToken;
-use crate::{db, ExecutionContext};
+use crate::{BLOCK_TIMEOUT, db, ExecutionContext, MAX_NICKNAME_LENGTH};
 
 async fn handle_instructions(body:Value, client:Object, context:Arc<ExecutionContext>) -> Option<Value>{
     let method = *&body[0].as_str()?;
@@ -12,17 +12,18 @@ async fn handle_instructions(body:Value, client:Object, context:Arc<ExecutionCon
     return match method {
         "answer" => {
             let timeout = *context.timeouts.lock().await.get(&auth_token.0).unwrap_or(&0);
-            let blocked = timeout>1;
+            let blocked = timeout>=BLOCK_TIMEOUT;
             let answer = data["answer"].as_str()?.to_string();
 
+            if blocked{return Some(json!({"error": "blocked"}))}
+
+            if answer.len()>MAX_NICKNAME_LENGTH{return Some(json!({"error": "answer too long"}))}
+
             let mut correct = false;
-            if !blocked {
-                correct = db::check_answer(&client, &auth_token, &answer, context.clone()).await;
-            }
+            correct = db::check_answer(&client, &auth_token, &answer, context.clone()).await;
+
             let mut respose = json!({
-                "correct": correct,
-                "timeout": timeout,
-                "block": blocked
+                "correct": correct
             });
             if correct{
                 respose["next"] = json!(*db::current_question(&client, &auth_token, context.clone()).await);
@@ -41,7 +42,7 @@ async fn handle_instructions(body:Value, client:Object, context:Arc<ExecutionCon
         },
         "rename" => {
             let nickname = data["nickname"].as_str()?.to_string();
-            if nickname.len()>20{return Some(json!("nickname too long"))}
+            if nickname.len()>MAX_NICKNAME_LENGTH{return Some(json!({"error": "nickname too long"}))}
             db::set_nickname(&client, &auth_token, &nickname).await;
             Some(json!("ok"))
         },
