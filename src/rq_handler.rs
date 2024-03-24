@@ -32,10 +32,16 @@ async fn handle_instructions(body:Value, client:Object, context:Arc<ExecutionCon
             Some(respose)
         },
         "stats" => {
+            let ranking = db::retrieve_ranking(&client).await;
+            let rank = match db::get_rank(&client, &auth_token).await {
+                Some(v) => Value::Number(v.into()),
+                None => Value::Null
+            };
             Some(json!({
                 "count": &context.question_set.count(),
                 "progress": db::get_progress(&client, &auth_token).await,
-                "top_progress": db::retrieve_ranking(&client).await[0].1,
+                "rank": rank,
+                "top_progress": ranking[0].1,
                 "nickname": db::get_nickname(&client, &auth_token).await
             }))
 

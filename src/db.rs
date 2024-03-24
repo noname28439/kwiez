@@ -53,6 +53,16 @@ pub async fn set_nickname(client: &Object, token:&AuthToken, nickname:&String){
     client.query("update kwiez_users set nickname = $1 where token=$2;", &[&nickname, &token.0]).await.expect("Could not set nickname");
 }
 
+pub async fn get_rank(client:&Object, token:&AuthToken) -> Option<i64>{
+    let res = client.query("with ranking as (select token, rank() over (order by progress desc) as rank
+                 from kwiez_users
+                 where nickname is not null
+                 order by progress
+    ) select rank from ranking where token=$1;", &[&token.0]).await.expect("Could not get rank");
+    let row = res.get(0)?;
+    row.get(0)
+}
+
 //TODO: Maybe cache the ranking
 pub async fn retrieve_ranking(client: &Object) -> Vec<(String, i32)> {
     let res = client.query("select nickname, progress from kwiez_users where nickname is not null order by progress desc limit 3;", &[]).await.expect("Could not create ranking");
