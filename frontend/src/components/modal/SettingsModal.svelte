@@ -1,6 +1,10 @@
 <script>
-    import { authToken } from "../../authentication";
-    import { onMount } from "svelte";
+    import {authToken} from "../../authentication";
+    import {onMount} from "svelte";
+    import {useEndpoint} from "../../endpoints.js";
+
+    export let playerName;
+
 
     onMount(() => {
         const input = document.getElementById("stgNameDivTXT");
@@ -8,6 +12,18 @@
             console.log("Input focused");
         });
     });
+
+
+
+    async function renamePlayer() {
+        const newName = document.getElementById('stgNameDivTXT').value
+        const res = await useEndpoint("rename", {nickname:newName})
+
+        location.reload()
+    }
+
+
+
 </script>
 
 <main>
@@ -19,12 +35,28 @@
         <h3 class="settingsHeader">Dein Benutzername:</h3>
 
         <div id="stgNameDiv">
-            <input
-                id="stgNameDivTXT"
-                type="text"
-                placeholder="Manfredkiller69"
-            />
-            <input autofocus id="stgNameDivBTN" type="button" value="Ändern" />
+            {#if playerName}
+                <input
+                        id="stgNameDivTXT"
+                        type="text"
+                        placeholder={playerName}
+                />
+
+                <button autofocus id="stgNameDivBTN" type="button" on:click={renamePlayer}>Ändern</button>
+            {:else}
+
+                <input
+                        id="stgNameDivTXT"
+                        type="text"
+                        placeholder={"Verfügbar ab Frage 2"}
+                        disabled
+                />
+
+                <button autofocus id="stgNameDivBTN" type="button" on:click={renamePlayer} disabled>Ändern</button>
+
+            {/if}
+
+
         </div>
     </div>
 </main>
@@ -48,6 +80,7 @@
         flex-direction: row;
         align-items: center;
     }
+
     #stgNameDivTXT {
         width: 100%;
         font-weight: 800;
@@ -58,6 +91,7 @@
 
         box-shadow: 0px 4px 0px rgba(0, 0, 0, 0.25);
     }
+
     #stgNameDivBTN {
         border-radius: 0.5em;
         font-weight: 800;
@@ -69,6 +103,7 @@
         margin-left: 0.5em;
         border-width: 0.15em;
     }
+
     .settingsHeader {
         margin-top: 1em;
         margin-bottom: 0.5em;

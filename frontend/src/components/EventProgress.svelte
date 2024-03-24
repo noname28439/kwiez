@@ -1,6 +1,15 @@
+<script>
+    export let topPlayer = 0;
+    export let ownPlayer = 0;
+    export let amountQuestions = 0;
+
+
+
+</script>
+
 <main>
-    <progress id="progressTop" max="100" value="80">70%</progress>
-    <progress id="progressPlayer" max="100" value="70">70%</progress>
+    <progress id="progressTop" max={amountQuestions} value={topPlayer}>{topPlayer}%</progress>
+    <progress id="progressPlayer" max={amountQuestions} value={ownPlayer}>{ownPlayer}%</progress>
 </main>
 
 <style>

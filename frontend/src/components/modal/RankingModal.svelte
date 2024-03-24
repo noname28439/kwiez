@@ -1,5 +1,8 @@
 <script>
-    import { each } from "svelte/internal";
+    import {each} from "svelte/internal";
+
+    export let rankingData;
+    export let stats;
 
     const rankingDATA = {
         global: [
@@ -24,6 +27,7 @@
             points: 45,
             rank: 248,
         },
+
     };
 </script>
 
@@ -34,28 +38,34 @@
         </div>
 
         <div>
-            {#each rankingDATA.global as entry}
-                <div class="rankingEntry">
-                    <div
-                        style="display:flex; flex-direction: row; align-items: center;"
-                    >
-                        <p class="placeRankingTxt">{entry.rank}.</p>
-                        <p>{entry.username}</p>
-                    </div>
+            {#if rankingData}
+                {#each rankingData as entry, index}
+                    <div class="rankingEntry">
+                        <div
+                                style="display:flex; flex-direction: row; align-items: center;"
+                        >
+                            <p class="placeRankingTxt">{index + 1}.</p>
+                            <p>{entry[0]}</p>
+                        </div>
 
-                    <p style="margin-left: 1em;">{entry.points}</p>
-                </div>
-            {/each}
+                        <p style="margin-left: 1em;">{entry[1]}</p>
+                    </div>
+                {/each}
+            {/if}
 
             <div class="rankingEntryOwn">
+
+                {#if stats}
                 <div
-                    style="display:flex; flex-direction: row; align-items: center;"
+                        style="display:flex; flex-direction: row; align-items: center;"
                 >
-                    <p class="placeRankingTxt">{rankingDATA.player.rank}.</p>
-                    <p>{rankingDATA.player.username}</p>
+                    <p class="placeRankingTxt">100.</p>
+                    <p>{stats.nickname}</p>
                 </div>
 
-                <p style="margin-left: 1em;">{rankingDATA.player.points}</p>
+                <p style="margin-left: 1em;">{stats.progress}</p>
+
+                    {/if}
             </div>
         </div>
     </div>
@@ -73,6 +83,7 @@
         align-items: center;
         justify-content: center;
     }
+
     .icon-div ion-icon {
         font-size: 5em;
         color: var(--linearGradient-orange1);
@@ -108,9 +119,9 @@
         border-radius: 1em;
 
         background-image: -webkit-linear-gradient(
-            0deg,
-            var(--linearGradient-orange1) 0%,
-            var(--linearGradient-orange2) 200%
+                0deg,
+                var(--linearGradient-orange1) 0%,
+                var(--linearGradient-orange2) 200%
         );
         box-shadow: 0px 4px 32.8px var(--linearGradient-orange1);
     }

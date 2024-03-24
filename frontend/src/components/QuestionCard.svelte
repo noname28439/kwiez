@@ -1,16 +1,98 @@
+<script>
+
+    import {onMount} from "svelte";
+    import {useEndpoint} from "../endpoints.js";
+
+    export let questionNumber;
+    let question = null;
+
+    let wrongAnswer = false;
+
+    let rightAnswer = false;
+
+
+    onMount(async () => {
+        question = await useEndpoint("cq", {});
+        console.log(question)
+    });
+
+    async function submitAnswer() {
+
+        const answer = document.getElementById('textInputFieldAnswer').value
+
+        const res = await useEndpoint("answer", {answer: answer});
+
+        if (res.correct) {
+            rightAnswer = true;
+            alert("Richtig!")
+            location.reload()
+        } else {
+            wrongAnswer = true;
+            alert("Schlecht.")
+        }
+
+
+        console.log(res)
+    }
+
+
+</script>
+
 <main>
     <div id="body">
         <div id="topDivs">
-            <div id="topQuestion"><p>Frage 25</p></div>
-            <div id="topDifficulty" class="topDifficultyEasy">
-                <p id="difficulty">Einfach</p>
-            </div>
+            <div id="topQuestion"><p>Frage
+                {#if questionNumber}{questionNumber.progress + 1}{/if}
+            </p></div>
+            {#if question}
+
+                {#if question.schwierigkeit == "Leicht"}
+                    <div id="topDifficulty" class="topDifficultyEasy">
+                        <p id="difficulty">
+
+                            {question.schwierigkeit}
+
+                        </p>
+                    </div>
+                {:else if question.schwierigkeit == "Mittel"}
+
+                    <div id="topDifficulty" class="topDifficultyMiddle">
+                        <p id="difficulty">
+
+                            {question.schwierigkeit}
+
+                        </p>
+                    </div>
+                {:else if question.schwierigkeit == "Schwer"}
+
+                    <div id="topDifficulty" class={"topDifficultyHard"}>
+                        <p id="difficulty">
+
+                            {question.schwierigkeit}
+
+                        </p>
+                    </div>
+
+
+
+
+            {/if}
+
+
+            {/if}
         </div>
-        <p id="questionTxt">Wer ist eine Taube?</p>
+        <p id="questionTxt">
 
-        <textarea placeholder="Antwort hier eingeben..." />
+            {#if question}
+                {question.frage}
+            {/if}
 
-        <button id="submitBtn">OK</button>
+        </p>
+
+        <textarea id="textInputFieldAnswer" placeholder="Antwort hier eingeben..."/>
+
+        <button id="submitBtn" on:click={submitAnswer}>OK</button>
+
     </div>
 </main>
 
@@ -19,9 +101,9 @@
         padding: 2em;
 
         background-image: -webkit-linear-gradient(
-            -45deg,
-            var(--linearGradient-purple1) 0%,
-            var(--linearGradient-purple2) 100%
+                -45deg,
+                var(--linearGradient-purple1) 0%,
+                var(--linearGradient-purple2) 100%
         );
 
         border-radius: 3em;
@@ -80,6 +162,14 @@
 
     .topDifficultyEasy {
         background-color: rgba(18, 146, 46, 0.53);
+    }
+
+    .topDifficultyMiddle {
+        background-color: rgba(146, 144, 18, 0.53);
+    }
+
+    .topDifficultyHard {
+        background-color: rgba(146, 18, 18, 0.53);
     }
 
     textarea {
