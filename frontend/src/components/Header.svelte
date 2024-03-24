@@ -53,7 +53,7 @@
 {#if selectedModal == "settings"}
     <Modal bind:showModal>
         <h2 slot="header">Einstellungen</h2>
-        <SettingsModal playerName={stats.nickname}/>
+        <SettingsModal stats={stats} playerName={stats.nickname}/>
     </Modal>
 {:else if selectedModal == "rankings"}
     <Modal bind:showModal>

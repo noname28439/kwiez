@@ -4,6 +4,7 @@
     import {useEndpoint} from "../../endpoints.js";
 
     export let playerName;
+    export let stats;
 
 
     onMount(() => {
@@ -35,7 +36,7 @@
         <h3 class="settingsHeader">Dein Benutzername:</h3>
 
         <div id="stgNameDiv">
-            {#if playerName}
+            {#if stats.progress >= 1}
                 <input
                         id="stgNameDivTXT"
                         type="text"
