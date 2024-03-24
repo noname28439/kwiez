@@ -4,9 +4,6 @@
     import RankingModal from "./modal/RankingModal.svelte";
     import SettingsModal from "./modal/SettingsModal.svelte";
 
-    export let stats;
-    export let ranking;
-
     let showModal = false;
     let selectedModal = "rankings";
 </script>
@@ -53,14 +50,16 @@
 {#if selectedModal == "settings"}
     <Modal bind:showModal>
         <h2 slot="header">Einstellungen</h2>
-        <SettingsModal stats={stats} playerName={stats.nickname}/>
+        <SettingsModal/>
     </Modal>
 {:else if selectedModal == "rankings"}
     <Modal bind:showModal>
         <h2 slot="header">Rankings</h2>
-        <RankingModal stats={stats} rankingData={ranking} />
+        <RankingModal/>
     </Modal>
 {/if}
+
+
 
 <style>
     main {

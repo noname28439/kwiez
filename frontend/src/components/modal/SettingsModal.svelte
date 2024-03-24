@@ -2,29 +2,28 @@
     import {authToken} from "../../authentication";
     import {onMount} from "svelte";
     import {useEndpoint} from "../../endpoints.js";
+    import {stats} from "../stores.js";
+    import {sync} from "../networking.js";
 
-    export let playerName;
-    export let stats;
+    let information;
 
+    stats.subscribe((value) => {
+        information = value;
+    });
 
     onMount(() => {
         const input = document.getElementById("stgNameDivTXT");
         input.addEventListener("focus", () => {
-            console.log("Input focused");
         });
     });
 
-
-
     async function renamePlayer() {
-        const newName = document.getElementById('stgNameDivTXT').value
-        const res = await useEndpoint("rename", {nickname:newName})
-
-        location.reload()
+        const newName = document.getElementById("stgNameDivTXT").value;
+        const res = await useEndpoint("rename", {nickname: newName});
+        await sync();
+        document.getElementById("stgNameDivTXT").value = '';
+        //location.reload()
     }
-
-
-
 </script>
 
 <main>
@@ -36,28 +35,26 @@
         <h3 class="settingsHeader">Dein Benutzername:</h3>
 
         <div id="stgNameDiv">
-            {#if stats.progress >= 1}
-                <input
-                        id="stgNameDivTXT"
-                        type="text"
-                        placeholder={playerName}
-                />
+            <input
+                    id="stgNameDivTXT"
+                    type="text"
+                    placeholder={information.progress >= 1
+                    ? information.nickname
+                        ? information.nickname
+                        : "Hier eingeben..."
+                    : "Verfügbar ab Frage 2"}
+                    disabled={information.progress < 1}
+            />
 
-                <button autofocus id="stgNameDivBTN" type="button" on:click={renamePlayer}>Ändern</button>
-            {:else}
-
-                <input
-                        id="stgNameDivTXT"
-                        type="text"
-                        placeholder={"Verfügbar ab Frage 2"}
-                        disabled
-                />
-
-                <button autofocus id="stgNameDivBTN" type="button" on:click={renamePlayer} disabled>Ändern</button>
-
-            {/if}
-
-
+            <button
+                    autofocus
+                    id="stgNameDivBTN"
+                    type="button"
+                    on:click={renamePlayer}
+                    disabled={information.progress < 1}
+            >
+                Ändern
+            </button>
         </div>
     </div>
 </main>
@@ -73,6 +70,10 @@
 
     input {
         font-family: "Manrope";
+    }
+
+    button:hover {
+        cursor: pointer;
     }
 
     #stgNameDiv {

@@ -1,98 +1,85 @@
 <script>
+    import { useEndpoint } from "../endpoints.js";
 
-    import {onMount} from "svelte";
-    import {useEndpoint} from "../endpoints.js";
+    import { cq, stats } from "./stores.js";
+    import { sync } from "./networking.js";
 
-    export let questionNumber;
     let question = null;
+    let questionNumber = null;
 
-    let wrongAnswer = false;
-
-    let rightAnswer = false;
-
-
-    onMount(async () => {
-        question = await useEndpoint("cq", {});
-        console.log(question)
+    //Rerender
+    cq.subscribe((value) => {
+        question = value;
     });
 
+    stats.subscribe((value) => {
+        questionNumber = value.progress;
+    });
+    //----------
+
+    let answer = "";
+    let correct = null;
+
     async function submitAnswer() {
+        const res = await useEndpoint("answer", { answer: answer });
+        grow();
 
-        const answer = document.getElementById('textInputFieldAnswer').value
+        correct = res.correct;
 
-        const res = await useEndpoint("answer", {answer: answer});
-
-        if (res.correct) {
-            rightAnswer = true;
-            alert("Richtig!")
-            location.reload()
-        } else {
-            wrongAnswer = true;
-            alert("Schlecht.")
+        if (correct) {
+            //location.reload()
+            await new Promise((r) => setTimeout(r, 1000));
+            document.getElementById("textInputFieldAnswer").value = "";
+            correct = null;
+            await sync();
         }
-
-
-        console.log(res)
     }
 
-
+    function grow() {
+        document.getElementById("body").classList.add("grow");
+        setTimeout(() => document.getElementById("body").classList.remove("grow"), 1000);
+    }
 </script>
 
 <main>
-    <div id="body">
+    <div
+        id="body"
+        class={correct !== null ? (correct ? "correct" : "wrong") : ""}
+    >
         <div id="topDivs">
-            <div id="topQuestion"><p>Frage
-                {#if questionNumber}{questionNumber.progress + 1}{/if}
-            </p></div>
-            {#if question}
+            <div id="topQuestion">
+                <p>
+                    Frage {questionNumber + 1}
+                </p>
+            </div>
 
-                {#if question.schwierigkeit == "Leicht"}
-                    <div id="topDifficulty" class="topDifficultyEasy">
-                        <p id="difficulty">
-
-                            {question.schwierigkeit}
-
-                        </p>
-                    </div>
-                {:else if question.schwierigkeit == "Mittel"}
-
-                    <div id="topDifficulty" class="topDifficultyMiddle">
-                        <p id="difficulty">
-
-                            {question.schwierigkeit}
-
-                        </p>
-                    </div>
-                {:else if question.schwierigkeit == "Schwer"}
-
-                    <div id="topDifficulty" class={"topDifficultyHard"}>
-                        <p id="difficulty">
-
-                            {question.schwierigkeit}
-
-                        </p>
-                    </div>
-
-
-
-
-            {/if}
-
-
-            {/if}
+            <div
+                id="topDifficulty"
+                class={question.schwierigkeit == "Leicht"
+                    ? "topDifficultyEasy"
+                    : question.schwierigkeit == "Mittel"
+                      ? "topDifficultyMiddle"
+                      : "topDifficultyHard"}
+            >
+                <p id="difficulty">
+                    {question.schwierigkeit}
+                </p>
+            </div>
         </div>
         <p id="questionTxt">
-
-            {#if question}
-                {question.frage}
-            {/if}
-
+            {question.frage}
         </p>
 
-        <textarea id="textInputFieldAnswer" placeholder="Antwort hier eingeben..."/>
+        <form on:submit|preventDefault={submitAnswer}>
+            <input
+                bind:value={answer}
+                type="text"
+                id="textInputFieldAnswer"
+                placeholder="Antwort hier eingeben..."
+            />
 
-        <button id="submitBtn" on:click={submitAnswer}>OK</button>
-
+            <button type="submit" id="submitBtn"> OK</button>
+        </form>
     </div>
 </main>
 
@@ -101,14 +88,16 @@
         padding: 2em;
 
         background-image: -webkit-linear-gradient(
-                -45deg,
-                var(--linearGradient-purple1) 0%,
-                var(--linearGradient-purple2) 100%
+            -45deg,
+            var(--linearGradient-purple1) 0%,
+            var(--linearGradient-purple2) 100%
         );
 
         border-radius: 3em;
 
         box-shadow: 0px 4px 32.8px #727dde;
+
+        transition: all 200ms ease-in-out;
     }
 
     #topDivs {
@@ -172,13 +161,14 @@
         background-color: rgba(146, 18, 18, 0.53);
     }
 
-    textarea {
+    #textInputFieldAnswer {
         margin-top: 1em;
+        margin-bottom: 1em;
         font-weight: 800;
         font-family: "Manrope", sans-serif;
         width: 100%;
         border-radius: 1em;
-        height: 200px;
+        /*height: 200px;*/
         padding: 1.2em;
 
         box-shadow: 0px 4px 0px rgba(0, 0, 0, 0.25);
@@ -203,5 +193,47 @@
         -webkit-transform: translate(0px, 4px);
         transition: 0.1s;*/
         cursor: pointer;
+    }
+
+    .wrong {
+        animation: flashWrong 1s forwards;
+    }
+
+    @keyframes flashWrong {
+        0% {
+            outline: 0.5em solid #ff0000;
+        }
+        100% {
+            outline: none;
+        }
+    }
+
+    .correct {
+        animation: flashCorrect 1s forwards;
+    }
+
+    @keyframes flashCorrect {
+        0% {
+            outline: 0.5em solid #1aff00;
+        }
+        100% {
+            outline: none;
+        }
+    }
+
+    @keyframes grow {
+        0% {
+            transform: scale(1);
+        }
+        50% {
+            transform: scale(1.1);
+        }
+        100% {
+            transform: scale(1);
+        }
+    }
+
+    .grow {
+        animation: grow 1s ease-in-out;
     }
 </style>

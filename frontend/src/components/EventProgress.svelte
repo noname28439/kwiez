@@ -1,15 +1,31 @@
 <script>
-    export let topPlayer = 0;
-    export let ownPlayer = 0;
-    export let amountQuestions = 0;
+    import {stats} from "./stores.js";
+    import {tweened} from "svelte/motion";
+    import {cubicOut} from "svelte/easing";
 
+    let amountQuestions = 0;
+
+    const ownPlayer = tweened(0, {
+        duration: 400,
+        easing: cubicOut
+    });
+    const topPlayer = tweened(0, {
+        duration: 400,
+        easing: cubicOut
+    });
+
+    stats.subscribe((value) => {
+        ownPlayer.set(value.progress);
+        topPlayer.set(value.top_progress);
+        amountQuestions = value.count;
+    })
 
 
 </script>
 
 <main>
-    <progress id="progressTop" max={amountQuestions} value={topPlayer}>{topPlayer}%</progress>
-    <progress id="progressPlayer" max={amountQuestions} value={ownPlayer}>{ownPlayer}%</progress>
+    <progress id="progressTop" max={amountQuestions} value={$topPlayer}>{topPlayer}%</progress>
+    <progress id="progressPlayer" max={amountQuestions} value={$ownPlayer}>{ownPlayer}%</progress>
 </main>
 
 <style>

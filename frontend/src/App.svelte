@@ -4,57 +4,49 @@
     import QuestionCard from "./components/QuestionCard.svelte";
     import {useEndpoint} from "./endpoints.js";
     import {onMount} from "svelte";
+    import {sync} from "./components/networking.js";
 
     window.uEP = useEndpoint;	// for debugging
 
-    let stats = null;
-    let ranking = null;
+    const promise = sync();
 
-    onMount(async () => {
-
-        stats = await useEndpoint("stats", {});
-        ranking = await useEndpoint("ranking", {})
-    })
 
 </script>
 
 <main>
     <div id="wrapper">
 
-        {#if stats}
-            <Header stats={stats} ranking={ranking}/>
-        {:else}
-            <Header playerName={""} ranking={[]}/>
-        {/if}
-
-
-        <div id="EventProgress">
+        {#await promise}
+            <p>Laden</p>
+        {:then {stats, ranking, cq}}
 
             {#if stats}
-                <EventProgress
-                        amountQuestions={stats.count}
-                        ownPlayer={stats.progress}
-                        topPlayer={stats.top_progress}
-                />
+                <Header/>
             {:else}
-                <EventProgress
-                        amountQuestions={0}
-                        ownPlayer={0}
-                        topPlayer={0}
-                />
+                <Header />
             {/if}
 
-        </div>
-        <div id="QuestionCard">
-            <QuestionCard questionNumber={stats}/>
-        </div>
+
+            <div id="EventProgress">
+
+                {#if stats}
+                    <EventProgress/>
+                {:else}
+                    <EventProgress/>
+                {/if}
+
+            </div>
+            <div id="QuestionCard">
+                <QuestionCard/>
+            </div>
+
+        {/await}
     </div>
 </main>
 
 <style>
     main {
-        margin: 0 1em;
-        margin-top: 1em;
+        margin: 1em 1em 0;
     }
 
     #EventProgress {
@@ -67,6 +59,7 @@
 
     @media (min-width: 640px) {
         main {
+            margin: 1em 0 0;
             width: 100%;
             justify-content: center;
         }
@@ -77,4 +70,5 @@
             margin-right: auto;
         }
     }
+
 </style>

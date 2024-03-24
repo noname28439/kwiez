@@ -1,34 +1,19 @@
 <script>
     import {each} from "svelte/internal";
 
-    export let rankingData;
-    export let stats;
+    import {stats, ranking} from "../stores.js";
 
-    const rankingDATA = {
-        global: [
-            {
-                username: "Manfredkiller187",
-                points: 45,
-                rank: 1,
-            },
-            {
-                username: "LeonBanause69",
-                points: 45,
-                rank: 2,
-            },
-            {
-                username: "EverslohniumKek420",
-                points: 45,
-                rank: 3,
-            },
-        ],
-        player: {
-            username: "EverslohniumKek420",
-            points: 45,
-            rank: 248,
-        },
+    let information;
+    let rankingData;
 
-    };
+    stats.subscribe((value) => {
+        information = value;
+
+    })
+    ranking.subscribe((value) => {
+        rankingData = value;
+    })
+
 </script>
 
 <main>
@@ -38,35 +23,40 @@
         </div>
 
         <div>
-            {#if rankingData}
-                {#each rankingData as entry, index}
-                    <div class="rankingEntry">
-                        <div
-                                style="display:flex; flex-direction: row; align-items: center;"
-                        >
-                            <p class="placeRankingTxt">{index + 1}.</p>
-                            <p>{entry[0]}</p>
-                        </div>
-
-                        <p style="margin-left: 1em;">{entry[1]}</p>
+            {#each rankingData as entry, index}
+                <div class="rankingEntry">
+                    <div
+                            style="display:flex; flex-direction: row; align-items: center;"
+                    >
+                        <p class="placeRankingTxt">{index + 1}.</p>
+                        <p>{entry[0]}</p>
                     </div>
-                {/each}
-            {/if}
 
-            <div class="rankingEntryOwn">
+                    <p style="margin-left: 1em;">{entry[1]}</p>
+                </div>
+            {/each}
 
-                {#if stats}
-                <div
-                        style="display:flex; flex-direction: row; align-items: center;"
-                >
-                    <p class="placeRankingTxt">100.</p>
-                    <p>{stats.nickname}</p>
+            {#if information.nickname}
+
+                <div class="rankingEntryOwn">
+
+
+                    <div
+                            style="display:flex; flex-direction: row; align-items: center;"
+                    >
+                        <p class="placeRankingTxt">{information.rank}.</p>
+                        <p>{information.nickname}</p>
+                    </div>
+
+                    <p style="margin-left: 1em;">{information.progress}</p>
+
                 </div>
 
-                <p style="margin-left: 1em;">{stats.progress}</p>
+            {:else}
+                <p style="margin-top: 2em;">Lege in den Einstellungen einen Spielernamen fest, um ab Frage 2 dem
+                    AEG-Ranking beitreten zu können.</p>
+            {/if}
 
-                    {/if}
-            </div>
         </div>
     </div>
 </main>
@@ -75,6 +65,7 @@
     p {
         font-weight: 800;
     }
+
 
     .icon-div {
         display: flex;
