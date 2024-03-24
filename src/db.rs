@@ -55,7 +55,7 @@ pub async fn set_nickname(client: &Object, token:&AuthToken, nickname:&String){
 
 //TODO: Maybe cache the ranking
 pub async fn retrieve_ranking(client: &Object) -> Vec<(String, i32)> {
-    let res = client.query("select nickname, progress from kwiez_users where nickname is not null order by progress desc;", &[]).await.expect("Could not create ranking");
+    let res = client.query("select nickname, progress from kwiez_users where nickname is not null order by progress desc limit 3;", &[]).await.expect("Could not create ranking");
     let mut ranking:Vec<(String, i32)> = Vec::new();
     for row in res{
         ranking.push((row.get(0), row.get(1)));
