@@ -39,7 +39,11 @@ pub async fn get_nickname(client: &Object, token:&AuthToken) -> Value {
     let res = client.query("select nickname from kwiez_users where token=$1;", &[&token.0]).await.expect("Could not get nickname");
     match res.get(0){
         Some(row) => {
-            Value::String(row.get(0))
+            let nick:Option<&str> = row.get(0);
+            match nick{
+                Some(n) => Value::String(n.to_string()),
+                None => Value::Null
+            }
         },
         None => Value::Null
     }
