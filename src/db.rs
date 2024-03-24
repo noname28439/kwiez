@@ -69,7 +69,7 @@ pub async fn check_answer(client: &Object, token: &AuthToken, answer:&String, co
     let progress = get_progress(client, token).await;
     let questions = &context.question_set;
     let frage = questions.n_te_frage(progress).expect("Invalid progress");
-    let correct = compare_answers(&frage.antwort, answer);
+    let correct = compare_answers(answer, &frage);
     if correct {
         if progress == 0 {create_user(client, token).await;}
         if progress+1 < questions.count() as i32 {
@@ -85,6 +85,17 @@ pub async fn check_answer(client: &Object, token: &AuthToken, answer:&String, co
     correct
 }
 
-fn compare_answers(a1:&String, a2:&String) -> bool{
-    a1.to_lowercase().trim() == a2.to_lowercase().trim()
+fn simplify_answer(answer:&String) -> String{
+    answer.to_lowercase().trim().replace(",", ".")
+}
+
+fn compare_answers(provided_answer:&String, question:&Frage) -> bool{
+    let answers = question.antwort.split(";");
+    for answer in answers{
+        println!("Comparing {} with {}", provided_answer, answer.to_string());
+        if simplify_answer(provided_answer) == simplify_answer(&answer.to_string()){
+            return true;
+        }
+    }
+    false
 }
