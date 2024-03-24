@@ -29,7 +29,7 @@ pub struct ExecutionContext {
 async fn main() {
     dotenv().ok();
 
-    let file = File::open("Questions.csv").expect("File not found");
+    let file = File::open("Questions.tsv").expect("File not found");
     let qset = Arc::new(FragenSet::from_file(BufReader::new(file)));
     let tmgr = Arc::new(Mutex::new(HashMap::new()));
 

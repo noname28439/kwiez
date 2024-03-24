@@ -73,7 +73,7 @@ impl FragenSet{
 
         for line in reader.lines().skip(1){
             let line = line.unwrap();
-            let columns:Vec<&str> = line.split(",").collect();
+            let columns:Vec<&str> = line.split("\t").collect();
 
             let build_question = || -> Result<Frage, ()>{
                 let id = columns[0];
