@@ -1,5 +1,5 @@
-use std::env;
 use std::collections::HashMap;
+use std::env;
 use std::fs::File;
 use std::io::BufReader;
 use std::str::FromStr;
@@ -8,73 +8,17 @@ use std::time::Duration;
 
 use deadpool_postgres::{Manager, Pool, PoolConfig};
 use dotenv::dotenv;
-use serde_json::{json, Value};
 use tokio::sync::Mutex;
 use warp::Filter;
 use warp::http::Uri;
 
-use crate::db::AuthToken;
-use crate::question::{FragenSet};
+use crate::question::FragenSet;
+use crate::rq_handler::api_endpoint;
 
 mod db;
 mod question;
+mod rq_handler;
 
-async fn ep(body:Value, pool:Pool, context:Arc<ExecutionContext>) -> Result<impl warp::Reply, std::convert::Infallible>{
-    let method = *&body[0].as_str().expect("no method specified...");
-    let auth_token = AuthToken(body[1].as_str().expect("no auth token specified...").to_string());
-    let data = &body[2];
-
-    let client = pool.get().await.unwrap();
-
-    return match method {
-        "answer" => {
-            let timeout = *context.timeouts.lock().await.get(&auth_token.0).unwrap_or(&0);
-            let blocked = timeout>1;
-            let answer = data["answer"].as_str().expect("no answer specified...").to_string();
-
-            let mut correct = false;
-            if !blocked {
-                correct = db::check_answer(&client, &auth_token, &answer, context.clone()).await;
-            }
-            let mut respose = json!({
-                "correct": correct,
-                "timeout": timeout,
-                "block": blocked
-            });
-            if correct{
-                respose["next"] = json!(*db::current_question(&client, &auth_token, context.clone()).await);
-            }
-
-            Ok(warp::reply::json(&respose))
-        },
-        "stats" => {
-            Ok(warp::reply::json(&json!({
-                "count": &context.question_set.count(),
-                "progress": db::get_progress(&client, &auth_token).await,
-                "top_progress": db::retrieve_ranking(&client).await[0].1,
-                "nickname": db::get_nickname(&client, &auth_token).await
-            })))
-
-        },
-        "rename" => {
-            let nickname = data["nickname"].as_str().expect("no nickname specified...").to_string();
-            if nickname.len()>20{return Ok(warp::reply::json(&"nickname too long"))}
-            db::set_nickname(&client, &auth_token, &nickname).await;
-            Ok(warp::reply::json(&"ok"))
-        },
-        "ranking" => {
-            let ranking = db::retrieve_ranking(&client).await;
-            Ok(warp::reply::json(&ranking))
-        },
-        "cq" => {
-            let cq = db::current_question(&client, &auth_token, context.clone()).await;
-            Ok(warp::reply::json(&*cq))
-        },
-        _ => {
-            Ok(warp::reply::json(&"invalid method"))
-        }
-    };
-}
 
 pub struct ExecutionContext {
     question_set: Arc<FragenSet>,
@@ -122,7 +66,7 @@ async fn main() {
         .and(warp::body::json())
         .and(db_filter.clone())
         .and(context_filter.clone())
-        .and_then(ep);
+        .and_then(api_endpoint);
     let public_route = warp::any().and(warp::fs::dir("./frontend/public"));
     let fallback_route = warp::any().map(|| warp::redirect(Uri::from_static("/index.html")));
 
