@@ -71,6 +71,8 @@ impl FragenSet{
     pub fn from_file(reader: BufReader<File>) -> Self{
         let mut fragen:Vec<Arc<Frage>> = Vec::new();
 
+        let mut invalid_ids: Vec<String> = Vec::new();
+
         for line in reader.lines().skip(1){
             let line = line.unwrap();
             let columns:Vec<&str> = line.split("\t").collect();
@@ -87,8 +89,12 @@ impl FragenSet{
 
             match build_question() {
                 Ok(q) => fragen.push(Arc::new(q)),
-                Err(_) => println!("Invalid question ({columns:?})")
+                Err(_) => invalid_ids.push(columns[0].to_string())
             }
+        }
+
+        if invalid_ids.len() > 0{
+            println!("Invalid questions id's: {:?}", invalid_ids);
         }
 
         //sort by difficulty
