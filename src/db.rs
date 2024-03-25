@@ -2,6 +2,7 @@ use std::sync::Arc;
 
 use deadpool_postgres::Object;
 use serde_json::Value;
+use warp::reply::Json;
 
 use crate::ExecutionContext;
 use crate::question::Frage;
@@ -30,23 +31,39 @@ async fn increase_progress(client: &Object, token:&AuthToken){
 
 pub async fn get_progress(client:&Object, token:&AuthToken) -> i32{
     let x = client.query("SELECT progress FROM kwiez_users WHERE token = $1;", &[&token.0]).await.unwrap();
-    match x.get(0) {Some(v) => v.get(0),
+    match x.get(0) {Some(v) => {
+        match v.get(0){
+            Some(p) => p,
+            None => 0
+        }
+    },
         None=>0
     }
 }
 
-pub async fn get_nickname(client: &Object, token:&AuthToken) -> Value {
-    let res = client.query("select nickname from kwiez_users where token=$1;", &[&token.0]).await.expect("Could not get nickname");
-    match res.get(0){
-        Some(row) => {
-            let nick:Option<&str> = row.get(0);
-            match nick{
-                Some(n) => Value::String(n.to_string()),
-                None => Value::Null
-            }
-        },
-        None => Value::Null
+pub async fn set_profanity_block(client: &Object, token:&AuthToken, profanity_name:&String){
+    client.query("update kwiez_users set profanity_block = $2 where token=$1;", &[&token.0, &profanity_name]).await.expect("Error setting profanity block");
+}
+pub async fn get_profanity_block(client: &Object, token:&AuthToken) -> Option<String>{
+    let res = client.query("select profanity_block from kwiez_users where token=$1;", &[&token.0]).await.expect("Could not check profanity block");
+    if let Some(row) = res.get(0){
+        return row.get(0);
     }
+    None
+}
+
+
+/*
+Returns the nickname or if blocked the profanity blocked name to make the user believe that the profane nickname was set
+ */
+pub async fn get_own_nickname(client: &Object, token:&AuthToken) -> Value {
+    let res = client.query("select COALESCE(profanity_block, nickname) from kwiez_users where token=$1;", &[&token.0]).await.expect("Could not get nickname");
+    if let Some(row) = res.get(0){
+        if let Some(nickname) = row.get(0){
+            return Value::String(nickname);
+        }
+    }
+    Value::Null
 }
 
 pub async fn set_nickname(client: &Object, token:&AuthToken, nickname:&String){

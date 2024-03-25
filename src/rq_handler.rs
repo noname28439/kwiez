@@ -37,19 +37,36 @@ async fn handle_instructions(body:Value, client:Object, context:Arc<ExecutionCon
                 Some(v) => Value::Number(v.into()),
                 None => Value::Null
             };
+            let mut top_rank = 0;
+            if ranking.len() != 0{
+                top_rank = ranking[0].1;
+            }
             Some(json!({
                 "count": &context.question_set.count(),
                 "progress": db::get_progress(&client, &auth_token).await,
                 "rank": rank,
-                "top_progress": ranking[0].1,
-                "nickname": db::get_nickname(&client, &auth_token).await
+                "top_progress": top_rank,
+                "nickname": db::get_own_nickname(&client, &auth_token).await
             }))
 
         },
         "rename" => {
             let nickname = data["nickname"].as_str()?.to_string();
             if nickname.len()>MAX_NICKNAME_LENGTH{return Some(json!({"error": "nickname too long"}))}
-            db::set_nickname(&client, &auth_token, &nickname).await;
+            let contains_profanity = context.profanity_filter.check(&nickname);
+            let has_profanity_block = db::get_profanity_block(&client, &auth_token).await.is_some();
+
+            if contains_profanity{
+                println!("Profanity from {} detected (profanity: \"{nickname}\", hasBlock: \"{has_profanity_block}\")", auth_token.0);
+            }
+
+            if has_profanity_block || contains_profanity{
+                db::set_profanity_block(&client, &auth_token, &nickname).await;
+                let first_letter:String = nickname.chars().take(1).collect();
+                client.query("update kwiez_users set nickname = $2 where token=$1 and nickname is null;", &[&auth_token.0, &first_letter]).await.expect("Could not set nickname to first letter");
+            }else{
+                db::set_nickname(&client, &auth_token, &nickname).await;
+            }
             Some(json!("ok"))
         },
         "ranking" => {

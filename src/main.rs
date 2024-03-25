@@ -11,6 +11,7 @@ use dotenv::dotenv;
 use tokio::sync::Mutex;
 use warp::Filter;
 use warp::http::Uri;
+use crate::profanity_filter::ProfanityFilter;
 
 use crate::question::FragenSet;
 use crate::rq_handler::api_endpoint;
@@ -18,21 +19,33 @@ use crate::rq_handler::api_endpoint;
 mod db;
 mod question;
 mod rq_handler;
+mod profanity_filter;
 
 pub const BLOCK_TIMEOUT: u8 = 2;
 pub const MAX_NICKNAME_LENGTH: usize = 20;
 pub const MAX_ANSWER_LENGTH: usize = 20;
 pub const QUESTION_FILE: &str = "Questions.tsv";
+pub const PROFANITY_FILTER_WORDLIST: &str = "swearwords.txt";
 
 
 pub struct ExecutionContext {
     question_set: Arc<FragenSet>,
-    timeouts: Arc<Mutex<HashMap<String, u8>>>
+    timeouts: Arc<Mutex<HashMap<String, u8>>>,
+    profanity_filter: ProfanityFilter
 }
 
 #[tokio::main]
 async fn main() {
     dotenv().ok();
+
+    let profanity_filter:ProfanityFilter = match File::open(PROFANITY_FILTER_WORDLIST) {
+        Ok(f) => ProfanityFilter::from_file(f),
+        Err(_) => {
+            println!("Could not open profanity file, using empty filter...");
+            ProfanityFilter::empty()
+        }
+    };
+
 
     let file = File::open(QUESTION_FILE).expect("File not found");
     let qset = Arc::new(FragenSet::from_file(BufReader::new(file)));
@@ -40,7 +53,8 @@ async fn main() {
 
     let execution_context = Arc::new(ExecutionContext {
         question_set: qset,
-        timeouts: tmgr.clone()
+        timeouts: tmgr.clone(),
+        profanity_filter
     });
 
     let tmgr_clone = tmgr.clone();
@@ -62,6 +76,12 @@ async fn main() {
     let mgr = Manager::new(cfg, tokio_postgres::NoTls);
     let pool = Pool::builder(mgr).config(PoolConfig::new(16)).max_size(16).build().unwrap();
 
+    pool.get().await.unwrap().query("create table if not exists kwiez_users (\
+    token varchar(64) not null, \
+    nickname varchar, \
+    progress int default 0, \
+    profanity_block varchar);\
+    ", &[]).await.expect("Could not create table");
 
     let db_filter = warp::any().map(move ||{pool.clone()});
     let context_filter = warp::any().map(move ||{Arc::clone(&execution_context)});
