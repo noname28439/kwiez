@@ -23,7 +23,7 @@ mod profanity_filter;
 
 pub const BLOCK_TIMEOUT: u8 = 2;
 pub const MAX_NICKNAME_LENGTH: usize = 20;
-pub const MAX_ANSWER_LENGTH: usize = 20;
+pub const MAX_ANSWER_LENGTH: usize = 50;
 pub const QUESTION_FILE: &str = "Questions.tsv";
 pub const PROFANITY_FILTER_WORDLIST: &str = "swearwords.txt";
 
