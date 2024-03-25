@@ -117,13 +117,20 @@ pub async fn check_answer(client: &Object, token: &AuthToken, answer:&String, co
 }
 
 fn simplify_answer(answer:&String) -> String{
-    answer.to_lowercase().trim().replace(",", ".")
+    answer.to_lowercase().trim()
+        .replace(",", ".")
+        .replace("€", "").
+        replace("\"", "")
+        .replace("ä", "ae")
+        .replace("ö", "oe")
+        .replace("ü", "ue")
+        .replace("ß", "ss")
 }
 
 fn compare_answers(provided_answer:&String, question:&Frage) -> bool{
     let answers = question.antwort.split(";");
     for answer in answers{
-        println!("Comparing {} with {}", provided_answer, answer.to_string());
+        //println!("Comparing {} with {}", provided_answer, answer.to_string());
         if simplify_answer(provided_answer) == simplify_answer(&answer.to_string()){
             return true;
         }
