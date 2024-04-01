@@ -35,7 +35,7 @@
         <h3 class="settingsHeader">Dein Benutzername:</h3>
 
         <div id="stgNameDiv">
-            <input
+            <input  maxlength="20"
                     id="stgNameDivTXT"
                     type="text"
                     placeholder={information.progress >= 1
