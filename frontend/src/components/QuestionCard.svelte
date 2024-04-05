@@ -1,8 +1,8 @@
 <script>
-    import { useEndpoint } from "../endpoints.js";
+    import {useEndpoint} from "../endpoints.js";
 
-    import { cq, stats } from "./stores.js";
-    import { sync } from "./networking.js";
+    import {cq, stats} from "./stores.js";
+    import {sync} from "./networking.js";
 
     let question = null;
     let questionNumber = null;
@@ -20,31 +20,42 @@
     let answer = "";
     let correct = null;
 
+
+    async function correctAnswer() {
+        correct = true;
+        await new Promise((r) => setTimeout(r, 1000));
+        correct = null;
+    }
+
+    async function wrongAnswer() {
+        correct = false;
+        await new Promise((r) => setTimeout(r, 400));
+        correct = null;
+    }
+
+    //-----------------
+
     async function submitAnswer() {
-        const res = await useEndpoint("answer", { answer: answer });
-        grow();
+        const res = await useEndpoint("answer", {answer: answer});
 
-        correct = res.correct;
+        console.log(res)
 
-        if (correct) {
-            //location.reload()
-            await new Promise((r) => setTimeout(r, 1000));
+        if (res.correct) {
             document.getElementById("textInputFieldAnswer").value = "";
-            correct = null;
+            correctAnswer();
             await sync();
+        } else {
+            await wrongAnswer();
         }
     }
 
-    function grow() {
-        document.getElementById("body").classList.add("grow");
-        setTimeout(() => document.getElementById("body").classList.remove("grow"), 1000);
-    }
 </script>
 
 <main>
     <div
-        id="body"
-        class={correct !== null ? (correct ? "correct" : "wrong") : ""}
+            id="body"
+            class={correct !== null ? (correct ? "correct" : "wrong") : ""}
+
     >
         <div id="topDivs">
             <div id="topQuestion">
@@ -54,10 +65,10 @@
             </div>
 
             <div
-                id="topDifficulty"
-                class={question.schwierigkeit == "Leicht"
+                    id="topDifficulty"
+                    class={question.schwierigkeit === "Leicht"
                     ? "topDifficultyEasy"
-                    : question.schwierigkeit == "Mittel"
+                    : question.schwierigkeit === "Mittel"
                       ? "topDifficultyMiddle"
                       : "topDifficultyHard"}
             >
@@ -72,10 +83,10 @@
 
         <form on:submit|preventDefault={submitAnswer}>
             <input
-                bind:value={answer}
-                type="text"
-                id="textInputFieldAnswer"
-                placeholder="Antwort hier eingeben..."
+                    bind:value={answer}
+                    type="text"
+                    id="textInputFieldAnswer"
+                    placeholder="Antwort hier eingeben..."
             />
 
             <button type="submit" id="submitBtn"> OK</button>
@@ -88,9 +99,9 @@
         padding: 2em;
 
         background-image: -webkit-linear-gradient(
-            -45deg,
-            var(--linearGradient-purple1) 0%,
-            var(--linearGradient-purple2) 100%
+                -45deg,
+                var(--linearGradient-purple1) 0%,
+                var(--linearGradient-purple2) 100%
         );
 
         border-radius: 3em;
@@ -196,44 +207,47 @@
     }
 
     .wrong {
-        animation: flashWrong 1s forwards;
+        animation: flashWrong 0.4s forwards;
     }
 
     @keyframes flashWrong {
         0% {
             outline: 0.5em solid #ff0000;
+            transform: rotate(0deg);
         }
+        25% {
+            transform: rotate(-5deg);
+        }
+
+        50% {
+            transform: rotate(5deg);
+        }
+
+        75% {
+            transform: rotate(-5deg);
+        }
+
         100% {
+            transform: rotate(0deg);
             outline: none;
         }
     }
 
     .correct {
         animation: flashCorrect 1s forwards;
+
     }
 
     @keyframes flashCorrect {
         0% {
             outline: 0.5em solid #1aff00;
+            transform: rotate(0deg);
+
         }
         100% {
             outline: none;
+            transform: rotate(360deg);
         }
     }
 
-    @keyframes grow {
-        0% {
-            transform: scale(1);
-        }
-        50% {
-            transform: scale(1.1);
-        }
-        100% {
-            transform: scale(1);
-        }
-    }
-
-    .grow {
-        animation: grow 1s ease-in-out;
-    }
 </style>

@@ -3,6 +3,7 @@
     import EventProgress from "./components/EventProgress.svelte";
     import QuestionCard from "./components/QuestionCard.svelte";
     import {useEndpoint} from "./endpoints.js";
+    import {fly} from "svelte/transition";
     import {onMount} from "svelte";
     import {sync} from "./components/networking.js";
 
@@ -27,7 +28,7 @@
             {/if}
 
 
-            <div id="EventProgress">
+            <div id="EventProgress" transition:fly={{ y: 50 }}>
 
                 {#if stats}
                     <EventProgress/>
@@ -36,8 +37,8 @@
                 {/if}
 
             </div>
-            <div id="QuestionCard">
-                <QuestionCard/>
+            <div id="QuestionCard" transition:fly={{ y: 50 }}>
+                <QuestionCard />
             </div>
 
         {/await}
