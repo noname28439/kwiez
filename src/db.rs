@@ -29,6 +29,14 @@ async fn increase_progress(client: &Object, token:&AuthToken){
     client.query("update kwiez_users set progress = progress + 1 where token=$1;", &[&token.0]).await.expect("Could not increase progress");
 }
 
+pub async fn reset_account(client: &Object, token:&AuthToken){
+    client.query("update kwiez_users set progress = 0 where token=$1;", &[&token.0]).await.expect("Could not reset account");
+}
+
+pub async fn set_nickname(client: &Object, token:&AuthToken, nickname:&String){
+    client.query("update kwiez_users set nickname = $1 where token=$2;", &[&nickname, &token.0]).await.expect("Could not set nickname");
+}
+
 pub async fn get_progress(client:&Object, token:&AuthToken) -> i32{
     let x = client.query("SELECT progress FROM kwiez_users WHERE token = $1;", &[&token.0]).await.unwrap();
     match x.get(0) {Some(v) => {
@@ -64,10 +72,6 @@ pub async fn get_own_nickname(client: &Object, token:&AuthToken) -> Value {
         }
     }
     Value::Null
-}
-
-pub async fn set_nickname(client: &Object, token:&AuthToken, nickname:&String){
-    client.query("update kwiez_users set nickname = $1 where token=$2;", &[&nickname, &token.0]).await.expect("Could not set nickname");
 }
 
 pub async fn get_rank(client:&Object, token:&AuthToken) -> Option<i64>{

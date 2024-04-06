@@ -77,6 +77,10 @@ async fn handle_instructions(body:Value, client:Object, context:Arc<ExecutionCon
             let cq = db::current_question(&client, &auth_token, context.clone()).await;
             Some(json!(*cq))
         },
+        "reset_account" => {
+            let cq = db::reset_account(&client, &auth_token).await;
+            Some(json!("ok"))
+        },
         _ => {
             Some(json!("invalid method"))
         }
