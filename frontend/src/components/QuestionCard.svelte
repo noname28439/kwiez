@@ -29,7 +29,7 @@
 
     async function wrongAnswer() {
         correct = false;
-        await new Promise((r) => setTimeout(r, 400));
+        await new Promise((r) => setTimeout(r, 500));
         correct = null;
     }
 
@@ -207,28 +207,29 @@
     }
 
     .wrong {
-        animation: flashWrong 0.4s forwards;
+        animation: flashWrong 0.5s forwards;
     }
 
     @keyframes flashWrong {
         0% {
             outline: 0.5em solid #ff0000;
-            transform: rotate(0deg);
+            transform: perspective(800px) rotateY(0deg);
         }
         25% {
-            transform: rotate(-5deg);
+            transform: perspective(800px) rotateY(-15deg);
         }
 
         50% {
-            transform: rotate(5deg);
+            transform: perspective(800px) rotateY(15deg);
+            outline: 0.5em solid #ff0000;
         }
 
         75% {
-            transform: rotate(-5deg);
+            transform: perspective(800px) rotateY(-15deg);
         }
 
         100% {
-            transform: rotate(0deg);
+            transform: perspective(800px) rotateY(0deg);
             outline: none;
         }
     }
@@ -241,12 +242,12 @@
     @keyframes flashCorrect {
         0% {
             outline: 0.5em solid #1aff00;
-            transform: rotate(0deg);
+            transform: perspective(800px) rotateY(0deg);
 
         }
         100% {
             outline: none;
-            transform: rotate(360deg);
+            transform: perspective(800px) rotateY(360deg);
         }
     }
 

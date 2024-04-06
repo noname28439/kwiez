@@ -24,15 +24,19 @@
         document.getElementById("stgNameDivTXT").value = '';
         //location.reload()
     }
+    async function resetPlayer() {
+        const res = await useEndpoint("reset_account");
+        location.reload();
+    }
 </script>
 
 <main>
     <div class="entry">
-        <h3 class="settingsHeader">Deine ID:</h3>
+        <h3 class="settingsHeader">Deine ID</h3>
         <p style="word-wrap: anywhere;">{authToken}</p>
     </div>
     <div class="entry">
-        <h3 class="settingsHeader">Dein Benutzername:</h3>
+        <h3 class="settingsHeader">Dein Benutzername</h3>
 
         <div id="stgNameDiv">
             <input  maxlength="20"
@@ -56,6 +60,16 @@
                 Ändern
             </button>
         </div>
+    </div>
+
+    <div class="entry">
+        <h3 class="settingsHeader">Zurücksetzen</h3>
+        <button
+                id="resetBTN"
+                type="button"
+                on:click={resetPlayer}
+        >Account löschen</button>
+
     </div>
 </main>
 
@@ -109,5 +123,17 @@
     .settingsHeader {
         margin-top: 1em;
         margin-bottom: 0.5em;
+    }
+
+
+    #resetBTN {
+        border-radius: 0.5em;
+        font-weight: 800;
+        font-family: "Manrope", sans-serif;
+        color: white;
+        background-color: rgba(255, 60, 60, 1);
+        box-shadow: 0px 4px 0px rgba(0, 0, 0, 0.25);
+        border-color: rgb(255, 255, 255, 0.25);
+        border-width: 0.15em;
     }
 </style>

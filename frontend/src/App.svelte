@@ -4,7 +4,6 @@
     import QuestionCard from "./components/QuestionCard.svelte";
     import {useEndpoint} from "./endpoints.js";
     import {fly} from "svelte/transition";
-    import {onMount} from "svelte";
     import {sync} from "./components/networking.js";
 
     window.uEP = useEndpoint;	// for debugging
@@ -55,7 +54,7 @@
     }
 
     #QuestionCard {
-        margin-top: 2em;
+        margin-top: 3em;
     }
 
     @media (min-width: 640px) {
