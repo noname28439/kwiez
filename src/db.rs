@@ -106,7 +106,7 @@ pub async fn check_answer(client: &Object, token: &AuthToken, answer:&String, co
     let frage = questions.n_te_frage(progress).expect("Invalid progress");
     let correct = compare_answers(answer, &frage);
     if correct {
-        if progress == 0 {create_user(client, token).await;}
+        if !token_exits(client, token).await {create_user(client, token).await;}
         if progress+1 < questions.count() as i32 {
             increase_progress(client, token).await;
         }else{
@@ -121,7 +121,7 @@ pub async fn check_answer(client: &Object, token: &AuthToken, answer:&String, co
 }
 
 fn simplify_answer(answer:&String) -> String{
-    answer.to_lowercase().trim()
+    answer.to_lowercase().split_whitespace().collect::<String>()
         .replace(",", ".")
         .replace("€", "").
         replace("\"", "")
