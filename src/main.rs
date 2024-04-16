@@ -11,8 +11,8 @@ use dotenv::dotenv;
 use tokio::sync::Mutex;
 use warp::Filter;
 use warp::http::Uri;
-use crate::profanity_filter::ProfanityFilter;
 
+use crate::profanity_filter::ProfanityFilter;
 use crate::question::FragenSet;
 use crate::rq_handler::api_endpoint;
 
@@ -47,8 +47,13 @@ async fn main() {
     };
 
 
-    let file = File::open(QUESTION_FILE).expect("File not found");
-    let qset = Arc::new(FragenSet::from_file(BufReader::new(file)));
+    let qset = Arc::new(match File::open(QUESTION_FILE){
+        Ok(f) => FragenSet::from_file(BufReader::new(f)),
+        Err(e) => {
+            println!("Could not open question file, using dummie questions...");
+            FragenSet::_dummie()
+        }
+    });
     let tmgr = Arc::new(Mutex::new(HashMap::new()));
 
     let execution_context = Arc::new(ExecutionContext {
