@@ -19,6 +19,7 @@
 
     let answer = "";
     let correct = null;
+    let blocked = false;
 
 
     async function correctAnswer() {
@@ -33,12 +34,24 @@
         correct = null;
     }
 
+    async function blockedAnswer() {
+        blocked = true;
+        await new Promise((r) => setTimeout(r, 5000));
+        blocked = false;
+    }
+
     //-----------------
 
     async function submitAnswer() {
         const res = await useEndpoint("answer", {answer: answer});
 
         console.log(res)
+
+        if(res.error === "blocked") {
+            if(!blocked)
+            await blockedAnswer();
+            return;
+        }
 
         if (res.correct) {
             document.getElementById("textInputFieldAnswer").value = "";
@@ -89,7 +102,7 @@
                     placeholder="Antwort hier eingeben..."
             />
 
-            <button type="submit" id="submitBtn"> OK</button>
+            <button type="submit" id="submitBtn" class={blocked ? "blocked" : ""}>{blocked?"PROBIER'S GLEICH WIEDER...":"OK"}</button>
         </form>
     </div>
 </main>
@@ -248,6 +261,31 @@
         100% {
             outline: none;
             transform: perspective(800px) rotateY(360deg);
+        }
+    }
+
+    .blocked {
+        animation: flashBlocked 500ms forwards;
+    }
+
+    @keyframes flashBlocked {
+        0% {
+            transform: perspective(800px) rotateY(0deg);
+            background-color: rgba(255, 0 , 0, 0.54);
+        }
+
+
+        25% {
+            transform: translateY(0.5em);
+        }
+
+        50% {
+
+            background-color: rgba(255, 0 , 0, 0.54);
+        }
+
+        100% {
+
         }
     }
 
