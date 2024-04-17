@@ -94,22 +94,22 @@ pub async fn retrieve_ranking(client: &Object) -> Vec<(String, i32)> {
     ranking
 }
 
-pub async fn current_question(client: &Object, token:&AuthToken, context: Arc<ExecutionContext>) -> Arc<Frage> {
+pub async fn current_question(client: &Object, token:&AuthToken, context: Arc<ExecutionContext>) -> Option<Arc<Frage>> {
     let progress = get_progress(client, token).await;
     let questions = &context.question_set;
-    questions.n_te_frage(progress).expect("Invalid progress")
+    questions.n_te_frage(progress)
 }
 
 pub async fn check_answer(client: &Object, token: &AuthToken, answer:&String, context: Arc<ExecutionContext>) -> bool{
     let progress = get_progress(client, token).await;
+    if progress >= context.question_set.count() as i32{return false}
     let questions = &context.question_set;
-    let frage = questions.n_te_frage(progress).expect("Invalid progress");
+    let frage = questions.n_te_frage(progress).expect("Invalid question id");
     let correct = compare_answers(answer, &frage);
     if correct {
         if !token_exits(client, token).await {create_user(client, token).await;}
-        if progress+1 < questions.count() as i32 {
-            increase_progress(client, token).await;
-        }else{
+        increase_progress(client, token).await;
+        if progress+1 == questions.count() as i32 {
             println!("winner: {}", token.0);
         }
     }else{

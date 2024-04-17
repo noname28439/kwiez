@@ -1,6 +1,7 @@
 use std::sync::Arc;
 use deadpool_postgres::{Object, Pool};
 use serde_json::{json, Value};
+use warp::reply::Json;
 use crate::db::AuthToken;
 use crate::{BLOCK_TIMEOUT, db, ExecutionContext, MAX_ANSWER_LENGTH, MAX_NICKNAME_LENGTH};
 
@@ -19,14 +20,16 @@ async fn handle_instructions(body:Value, client:Object, context:Arc<ExecutionCon
 
             if answer.len()>MAX_ANSWER_LENGTH{return Some(json!({"error": "answer too long"}))}
 
-            let mut correct = false;
-            correct = db::check_answer(&client, &auth_token, &answer, context.clone()).await;
+            let correct = db::check_answer(&client, &auth_token, &answer, context.clone()).await;
 
             let mut respose = json!({
                 "correct": correct
             });
             if correct{
-                respose["next"] = json!(*db::current_question(&client, &auth_token, context.clone()).await);
+                respose["next"] = match db::current_question(&client, &auth_token, context.clone()).await {
+                    Some(v) => json!(*v),
+                    None => Value::Null
+                };
             }
 
             Some(respose)
@@ -74,8 +77,10 @@ async fn handle_instructions(body:Value, client:Object, context:Arc<ExecutionCon
             Some(json!(ranking))
         },
         "cq" => {
-            let cq = db::current_question(&client, &auth_token, context.clone()).await;
-            Some(json!(*cq))
+            Some(match db::current_question(&client, &auth_token, context.clone()).await {
+                Some(v) => json!(*v),
+                None => return Some(json!({"error": "no question"}))
+            })
         },
         "reset_account" => {
             let cq = db::reset_account(&client, &auth_token).await;

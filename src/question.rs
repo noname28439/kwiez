@@ -109,7 +109,11 @@ impl FragenSet{
     }
 
     pub fn n_te_frage(&self, n:i32) -> Option<Arc<Frage>>{
-        Some(self.fragen[n as usize].clone())
+        if n < 0 || n >= self.fragen.len() as i32{
+             None
+        }else {
+            Some(self.fragen[n as usize].clone())
+        }
     }
 
     pub fn count(&self) -> usize{
