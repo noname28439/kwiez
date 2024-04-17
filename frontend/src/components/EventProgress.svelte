@@ -112,6 +112,7 @@
     #progressPlayerDiv, #progressTopDiv {
         position: relative;
         text-align: center;
+        overflow: hidden;
     }
 
     #progressValuePlayer, #progressValueTop {
