@@ -58,8 +58,9 @@ pub struct FragenSet{
 }
 
 impl FragenSet{
-    pub fn _dummie() -> Self{
+    pub fn placeholder() -> Self{
         let mut fragen:Vec<Arc<Frage>> = Vec::new();
+        fragen.push(Arc::new(Frage::new("Numerical?".to_string(), "1".to_string(), Schwierigkeit::Leicht)));
         fragen.push(Arc::new(Frage::new("Test".to_string(), "Penis".to_string(), Schwierigkeit::Leicht)));
         fragen.push(Arc::new(Frage::new("Ist Leon Toll?".to_string(),"100%".to_string(), Schwierigkeit::Mittel)));
         fragen.push(Arc::new(Frage::new("Eine Hütte hat den Durchmesser 13.4m und eine Seitenfläche von 5 Fuß. Auf ihrem Dach, dass einem Volumen von 3 Litern entspricht befindet sich kein Schornstein. Wie viele Huren passen in die Grage?".to_string(), "Keine".to_string(), Schwierigkeit::Schwer)));

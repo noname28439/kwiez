@@ -1,5 +1,6 @@
 use std::sync::Arc;
 use deadpool_postgres::{Object, Pool};
+use log::info;
 use serde_json::{json, Value};
 use warp::reply::Json;
 use crate::db::AuthToken;
@@ -60,7 +61,7 @@ async fn handle_instructions(body:Value, client:Object, context:Arc<ExecutionCon
             let has_profanity_block = db::get_profanity_block(&client, &auth_token).await.is_some();
 
             if contains_profanity{
-                println!("Profanity from {} detected (profanity: \"{nickname}\", hasBlock: \"{has_profanity_block}\")", auth_token.0);
+                info!("Profanity from {} detected (profanity: \"{nickname}\", hasBlock: \"{has_profanity_block}\")", auth_token.0);
             }
 
             if has_profanity_block || contains_profanity{

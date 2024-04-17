@@ -1,6 +1,7 @@
 use std::sync::Arc;
 
 use deadpool_postgres::Object;
+use log::{debug, info};
 use serde_json::Value;
 use warp::reply::Json;
 
@@ -110,7 +111,7 @@ pub async fn check_answer(client: &Object, token: &AuthToken, answer:&String, co
         if !token_exits(client, token).await {create_user(client, token).await;}
         increase_progress(client, token).await;
         if progress+1 == questions.count() as i32 {
-            println!("winner: {}", token.0);
+            info!("winner: {}", token.0);
         }
     }else{
         let mut a = context.timeouts.lock().await;
@@ -133,10 +134,25 @@ fn simplify_answer(answer:&String) -> String{
 
 fn compare_answers(provided_answer:&String, question:&Frage) -> bool{
     let answers = question.antwort.split(";");
+    let provided_answer = simplify_answer(provided_answer);
     for answer in answers{
-        //println!("Comparing {} with {}", provided_answer, answer.to_string());
-        if simplify_answer(provided_answer) == simplify_answer(&answer.to_string()){
-            return true;
+        let answer = simplify_answer(&answer.to_string());
+
+        let numerical_answer = answer.parse::<f64>().is_ok();
+        debug!("comparing \"{provided_answer}\" and \"{answer}\" (Numerical: {numerical_answer})");
+
+        if numerical_answer{
+            let provided_answer_num = match provided_answer.parse::<f64>() {
+                Ok(v)=> v,
+                Err(e)=> {  //provided answer invalid f64
+                    return false;
+                }
+            };
+            let answer_num = answer.parse::<f64>().unwrap();
+
+            return answer_num==provided_answer_num;
+        }else {
+            return provided_answer.contains(&answer);
         }
     }
     false

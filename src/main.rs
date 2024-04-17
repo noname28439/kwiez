@@ -8,6 +8,8 @@ use std::time::Duration;
 
 use deadpool_postgres::{Manager, Pool, PoolConfig};
 use dotenv::dotenv;
+use env_logger::{Builder, Env, Logger, Target};
+use log::info;
 use tokio::sync::Mutex;
 use warp::Filter;
 use warp::http::Uri;
@@ -38,13 +40,15 @@ pub struct ExecutionContext {
 async fn main() {
     dotenv().ok();
 
+    env_logger::init();
+
     let port = env::var("PORT").unwrap_or_default();
     let port = port.parse::<u16>().unwrap_or(8000);
 
     let profanity_filter:ProfanityFilter = match File::open(PROFANITY_FILTER_WORDLIST) {
         Ok(f) => ProfanityFilter::from_file(f),
         Err(_) => {
-            println!("Could not open profanity file, using empty filter...");
+            info!("Could not open profanity file, using empty filter...");
             ProfanityFilter::empty()
         }
     };
@@ -52,8 +56,8 @@ async fn main() {
     let qset = Arc::new(match File::open(QUESTION_FILE){
         Ok(f) => FragenSet::from_file(BufReader::new(f)),
         Err(e) => {
-            println!("Could not open question file, using dummie questions...");
-            FragenSet::_dummie()
+            info!("Could not open question file, using dummie questions...");
+            FragenSet::placeholder()
         }
     });
     let tmgr = Arc::new(Mutex::new(HashMap::new()));
