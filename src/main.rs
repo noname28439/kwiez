@@ -38,6 +38,9 @@ pub struct ExecutionContext {
 async fn main() {
     dotenv().ok();
 
+    let port = env::var("PORT").unwrap_or_default();
+    let port = port.parse::<u16>().unwrap_or(8000);
+
     let profanity_filter:ProfanityFilter = match File::open(PROFANITY_FILTER_WORDLIST) {
         Ok(f) => ProfanityFilter::from_file(f),
         Err(_) => {
@@ -45,7 +48,6 @@ async fn main() {
             ProfanityFilter::empty()
         }
     };
-
 
     let qset = Arc::new(match File::open(QUESTION_FILE){
         Ok(f) => FragenSet::from_file(BufReader::new(f)),
@@ -102,5 +104,5 @@ async fn main() {
 
     let routes = public_route.or(api_ep).or(fallback_route);
 
-    warp::serve(routes).run(([0, 0, 0, 0], 8000)).await;
+    warp::serve(routes).run(([0, 0, 0, 0], port)).await;
 }
