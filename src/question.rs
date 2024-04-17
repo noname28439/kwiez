@@ -2,6 +2,7 @@ use std::fs::File;
 use std::io::{BufRead, BufReader};
 use std::str::FromStr;
 use std::sync::Arc;
+use log::{info, warn};
 use serde::Serialize;
 
 #[derive(Serialize, Debug)]
@@ -95,14 +96,14 @@ impl FragenSet{
         }
 
         if invalid_ids.len() > 0{
-            println!("Invalid questions id's: {:?}", invalid_ids);
+            warn!("Invalid questions id's: {:?}", invalid_ids);
         }
 
         //sort by difficulty
         fragen.sort_by(|a,b| a.schwierigkeit.i().cmp(&b.schwierigkeit.i()));
 
 
-        println!("Loaded {} questions", fragen.len());
+        info!("Loaded {} questions", fragen.len());
 
         FragenSet{
             fragen
