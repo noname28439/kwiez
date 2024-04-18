@@ -85,6 +85,12 @@ pub async fn get_rank(client:&Object, token:&AuthToken) -> Option<i64>{
     row.get(0)
 }
 
+pub async fn get_top_progress(client:&Object) -> Option<i32>{
+    let res = client.query("select progress from kwiez_users order by progress desc limit 1;", &[]).await.expect("Could not get top progress");
+    let row = res.get(0)?;
+    row.get(0)
+}
+
 //TODO: Maybe cache the ranking
 pub async fn retrieve_ranking(client: &Object) -> Vec<(String, i32)> {
     let res = client.query("select nickname, progress from kwiez_users where nickname is not null order by progress desc limit 3;", &[]).await.expect("Could not create ranking");

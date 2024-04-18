@@ -41,10 +41,7 @@ async fn handle_instructions(body:Value, client:Object, context:Arc<ExecutionCon
                 Some(v) => Value::Number(v.into()),
                 None => Value::Null
             };
-            let mut top_rank = 0;
-            if ranking.len() != 0{
-                top_rank = ranking[0].1;
-            }
+            let top_rank = db::get_top_progress(&client).await.unwrap_or(0);
             Some(json!({
                 "count": &context.question_set.count(),
                 "progress": db::get_progress(&client, &auth_token).await,
