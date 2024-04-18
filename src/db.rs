@@ -122,7 +122,7 @@ pub async fn check_answer(client: &Object, token: &AuthToken, answer:&String, co
     }else{
         let mut a = context.timeouts.lock().await;
         let timeout = a.entry(token.0.clone()).or_insert(0);
-        *timeout += 1;
+        *timeout += 60;
     }
     correct
 }

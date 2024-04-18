@@ -34,22 +34,22 @@
         correct = null;
     }
 
-    async function blockedAnswer() {
-        blocked = true;
-        await new Promise((r) => setTimeout(r, 5000));
-        blocked = false;
-    }
-
     //-----------------
 
+    //timeout decrementer
+    let intervalID = setInterval(()=>{
+        if(current_timeout>0)
+        current_timeout--;
+    }, 1000);
+
     async function submitAnswer() {
+        if(current_timeout>0) return;
         const res = await useEndpoint("answer", {answer: answer});
 
         console.log(res)
 
         if(res.error === "blocked") {
-            if(!blocked)
-            await blockedAnswer();
+            current_timeout = Number(res.timeout);
             return;
         }
 
@@ -61,6 +61,8 @@
             await wrongAnswer();
         }
     }
+
+    let current_timeout = 0;
 
 </script>
 
@@ -102,7 +104,7 @@
                     placeholder="Antwort hier eingeben..."
             />
 
-            <button type="submit" id="submitBtn" class={blocked ? "blocked" : ""}>{blocked?"PROBIER'S GLEICH WIEDER...":"OK"}</button>
+            <button type="submit" id="submitBtn" class={current_timeout>0>0?"blocked":""}>{current_timeout>0?`WARTE NOCH ${current_timeout} SEKUNDEN`:"OK"}</button>
         </form>
     </div>
 </main>

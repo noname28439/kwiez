@@ -17,7 +17,7 @@ async fn handle_instructions(body:Value, client:Object, context:Arc<ExecutionCon
             let blocked = timeout>=BLOCK_TIMEOUT;
             let answer = data["answer"].as_str()?.to_string();
 
-            if blocked{return Some(json!({"error": "blocked"}))}
+            if blocked{return Some(json!({"error": "blocked", "timeout": timeout}))} //timeout-1 = minutes left
 
             if answer.len()>MAX_ANSWER_LENGTH{return Some(json!({"error": "answer too long"}))}
 
