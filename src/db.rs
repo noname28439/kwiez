@@ -5,7 +5,7 @@ use log::{debug, info};
 use serde_json::Value;
 use warp::reply::Json;
 
-use crate::ExecutionContext;
+use crate::{ExecutionContext, MAX_SKIPS};
 use crate::question::Frage;
 
 #[derive(Debug)]
@@ -73,6 +73,19 @@ pub async fn get_own_nickname(client: &Object, token:&AuthToken) -> Value {
         }
     }
     Value::Null
+}
+
+pub async fn skip(client: &Object, token: &AuthToken, context: Arc<ExecutionContext>) -> bool{
+    if !token_exits(client, token).await {return false}
+    let progress = get_progress(client, token).await;
+    if progress >= context.question_set.count() as i32{return false}
+    let used_skips = client.query("select used_skips from kwiez_users where token=$1;", &[&token.0]).await.expect("Could not get used skips");
+    let used_skips:i32 = used_skips.get(0).expect("Could not get used skips").get(0);
+    if used_skips<MAX_SKIPS {
+        client.query("update kwiez_users set progress = progress + 1, used_skips = used_skips + 1 where token=$1;", &[&token.0]).await.expect("Could not skip");
+        return true;
+    }
+    false
 }
 
 pub async fn get_rank(client:&Object, token:&AuthToken) -> Option<i64>{
@@ -159,3 +172,4 @@ fn compare_answers(provided_answer:&String, question:&Frage) -> bool{
     }
     false
 }
+

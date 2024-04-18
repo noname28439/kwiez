@@ -77,6 +77,9 @@ async fn handle_instructions(body:Value, client:Object, context:Arc<ExecutionCon
             }
             Some(json!("ok"))
         },
+        "skip" => {
+            Some(json!(db::skip(&client, &auth_token, context.clone()).await))
+        },
         "ranking" => {
             let ranking = db::retrieve_ranking(&client).await;
             Some(json!(ranking))

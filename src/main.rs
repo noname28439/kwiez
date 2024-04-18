@@ -23,6 +23,7 @@ mod question;
 mod rq_handler;
 mod profanity_filter;
 
+pub const MAX_SKIPS: i32 = 3;
 pub const BLOCK_TIMEOUT: i32 = 2*60;
 pub const MAX_NICKNAME_LENGTH: usize = 20;
 pub const MAX_ANSWER_LENGTH: usize = 50;
@@ -91,6 +92,7 @@ async fn main() {
     token varchar(64) not null, \
     nickname varchar, \
     progress int default 0, \
+    used_skips int default 0, \
     profanity_block varchar);\
     ", &[]).await.expect("Could not create table");
 
