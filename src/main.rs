@@ -23,7 +23,7 @@ mod question;
 mod rq_handler;
 mod profanity_filter;
 
-pub const BLOCK_TIMEOUT: u16 = 2;
+pub const BLOCK_TIMEOUT: i32 = 2*60;
 pub const MAX_NICKNAME_LENGTH: usize = 20;
 pub const MAX_ANSWER_LENGTH: usize = 50;
 pub const QUESTION_FILE: &str = "Questions.tsv";
@@ -32,7 +32,7 @@ pub const PROFANITY_FILTER_WORDLIST: &str = "swearwords.txt";
 
 pub struct ExecutionContext {
     question_set: Arc<FragenSet>,
-    timeouts: Arc<Mutex<HashMap<String, u16>>>,
+    timeouts: Arc<Mutex<HashMap<String, i32>>>,
     profanity_filter: ProfanityFilter
 }
 
@@ -60,7 +60,7 @@ async fn main() {
             FragenSet::placeholder()
         }
     });
-    let tmgr:Arc<Mutex<HashMap<String, u16>>> = Arc::new(Mutex::new(HashMap::new()));
+    let tmgr:Arc<Mutex<HashMap<String, i32>>> = Arc::new(Mutex::new(HashMap::new()));
 
     let execution_context = Arc::new(ExecutionContext {
         question_set: qset,
@@ -74,7 +74,7 @@ async fn main() {
             tokio::time::sleep(Duration::from_secs(1)).await;
             let mut tmgr = tmgr_clone.lock().await;
             for (_token, v) in tmgr.iter_mut(){
-                if *v == 0{continue;}
+                if *v <= 0 {continue;}
                 *v -= 1;
                 //println!("dec[{}]: {}", _token, v);
             }

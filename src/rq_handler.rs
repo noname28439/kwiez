@@ -13,15 +13,14 @@ async fn handle_instructions(body:Value, client:Object, context:Arc<ExecutionCon
 
     return match method {
         "answer" => {
+            let answer = data["answer"].as_str()?.to_string();
             let timeout = *context.timeouts.lock().await.get(&auth_token.0).unwrap_or(&0);
             let blocked = timeout>=BLOCK_TIMEOUT;
-            let answer = data["answer"].as_str()?.to_string();
-
-            if blocked{return Some(json!({"error": "blocked", "timeout": timeout}))} //timeout-1 = minutes left
+            if blocked{return Some(json!({"error": "blocked", "timeout": timeout-BLOCK_TIMEOUT}))}
 
             if answer.len()>MAX_ANSWER_LENGTH{return Some(json!({"error": "answer too long"}))}
-
             let correct = db::check_answer(&client, &auth_token, &answer, context.clone()).await;
+
 
             let mut respose = json!({
                 "correct": correct
@@ -31,7 +30,15 @@ async fn handle_instructions(body:Value, client:Object, context:Arc<ExecutionCon
                     Some(v) => json!(*v),
                     None => Value::Null
                 };
+            }else{
+                let mut a = context.timeouts.lock().await;
+                let timeout = a.entry(auth_token.0.clone()).or_insert(0);
+                *timeout += 60;
+                if(*timeout>=BLOCK_TIMEOUT){
+                    return Some(json!({"error": "blocked", "timeout": *timeout-BLOCK_TIMEOUT+1}))
+                }
             }
+
 
             Some(respose)
         },
