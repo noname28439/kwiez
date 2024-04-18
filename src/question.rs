@@ -2,8 +2,10 @@ use std::fs::File;
 use std::io::{BufRead, BufReader};
 use std::str::FromStr;
 use std::sync::Arc;
+use deadpool_postgres::{Manager, Object};
 use log::{info, warn};
 use serde::Serialize;
+use crate::question::Schwierigkeit::{Leicht, Mittel, Schwer};
 
 #[derive(Serialize, Debug)]
 pub enum Schwierigkeit {
@@ -61,16 +63,30 @@ pub struct FragenSet{
 impl FragenSet{
     pub fn placeholder() -> Self{
         let mut fragen:Vec<Arc<Frage>> = Vec::new();
-        fragen.push(Arc::new(Frage::new("Numerical?".to_string(), "1".to_string(), Schwierigkeit::Leicht)));
-        fragen.push(Arc::new(Frage::new("Test".to_string(), "Penis".to_string(), Schwierigkeit::Leicht)));
-        fragen.push(Arc::new(Frage::new("Ist Leon Toll?".to_string(),"100%".to_string(), Schwierigkeit::Mittel)));
+        fragen.push(Arc::new(Frage::new("Numerical?".to_string(), "1".to_string(), Leicht)));
+        fragen.push(Arc::new(Frage::new("Test".to_string(), "Penis".to_string(), Leicht)));
+        fragen.push(Arc::new(Frage::new("Ist Leon Toll?".to_string(),"100%".to_string(), Mittel)));
         fragen.push(Arc::new(Frage::new("Eine Hütte hat den Durchmesser 13.4m und eine Seitenfläche von 5 Fuß. Auf ihrem Dach, dass einem Volumen von 3 Litern entspricht befindet sich kein Schornstein. Wie viele Huren passen in die Grage?".to_string(), "Keine".to_string(), Schwierigkeit::Schwer)));
         FragenSet{
             fragen
         }
     }
 
-    pub fn from_file(reader: BufReader<File>) -> Self{
+    pub async fn from_database(db_client: Object) -> Option<Self>{
+        let fragen = db_client.query("SELECT * FROM questions ORDER BY schwiereigkeit ASC", &[]).await.ok()?;
+
+        let x = fragen.iter().map(
+            |row| Arc::new(Frage::new(row.get(0), row.get(1), match row.get(2) {0=>Leicht, 1=>Mittel, 2=>Schwer, _=>Schwer}))
+        ).collect::<Vec<Arc<Frage>>>();
+
+        info!("Loaded {} questions from database", x.len());
+
+        Some(FragenSet{
+            fragen: x
+        })
+    }
+
+    pub fn from_tsv(reader: BufReader<File>) -> Self{
         let mut fragen:Vec<Arc<Frage>> = Vec::new();
 
         let mut invalid_ids: Vec<String> = Vec::new();
@@ -103,7 +119,7 @@ impl FragenSet{
         fragen.sort_by(|a,b| a.schwierigkeit.i().cmp(&b.schwierigkeit.i()));
 
 
-        info!("Loaded {} questions", fragen.len());
+        info!("Loaded {} questions from file", fragen.len());
 
         FragenSet{
             fragen
