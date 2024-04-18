@@ -61,7 +61,7 @@ async fn main() {
     let profanity_filter:ProfanityFilter = match File::open(PROFANITY_FILTER_WORDLIST) {
         Ok(f) => ProfanityFilter::from_file(f),
         Err(_) => {
-            info!("Could not open profanity file, using empty filter...");
+            warn!("Could not open profanity file, using empty filter...");
             ProfanityFilter::empty()
         }
     };
