@@ -2,6 +2,7 @@
     import {stats} from "./stores.js";
     import {tweened} from "svelte/motion";
     import {cubicOut} from "svelte/easing";
+    import {onMount} from "svelte";
 
     let amountQuestions = 0;
 
@@ -14,7 +15,11 @@
         easing: cubicOut
     });
 
-    //let progressPercentage = (ownPlayer / amountQuestions) * 100;
+
+
+
+
+
 
 
     stats.subscribe((value) => {
@@ -24,9 +29,73 @@
     })
 
 
-    window.setProgress = (number) => {
+    window.setProgressOwn = (number) => {
         ownPlayer.set(number);
     }
+    window.setProgressTop = (number) => {
+        topPlayer.set(number);
+    }
+
+
+
+    //Disable progress text overflow
+
+    let progressValuePlayerTxt
+    let progressValueTopTxt
+
+    let progressBarPlayer
+    let progressBarTop
+
+    let progressPlayerPosition
+    let progressTopPosition
+
+    onMount(async () => {
+
+
+        ownPlayer.subscribe(value => {
+
+            progressPlayerPosition = getPosition(progressValuePlayerTxt, progressBarPlayer, value)
+
+        })
+
+        topPlayer.subscribe(value => {
+
+            progressTopPosition = getPosition(progressValueTopTxt, progressBarTop, value)
+
+        })
+
+
+
+    });
+
+    function getPosition(progressValueTxt, progressBar, value) {
+
+        if(progressValueTxt.clientWidth) {
+            //get text width
+            let txt_Width = (progressValueTxt.clientWidth + 1)
+
+            //get progress width
+            let bar_Width = (progressBar.clientWidth + 1)
+            let percentage = (value / amountQuestions);
+            let barProgressWidth = bar_Width * percentage
+
+            //set position
+            if( (txt_Width / 2) > barProgressWidth) {
+                return 0
+
+            } else if( (bar_Width - (txt_Width / 2)) < barProgressWidth) {
+                return 2
+
+            } else {
+                return 1
+            }
+        }
+
+    }
+
+
+
+
 
 
 </script>
@@ -34,30 +103,57 @@
 <main>
 
     <div id="progressTopDiv">
-        <div id="progressValueTop" style="margin-bottom: -1em; left: {($topPlayer / amountQuestions) * 100}%">
 
-            <div style="left: 50%;transform: translateX(-50%); text-align: center">
-                <p style="font-size: 13px; color: var(--linearGradient-purple2); white-space: nowrap;">
+        <div style="margin-bottom: -0.8em">
+
+        <div class="progressValue" style={progressTopPosition === 1 ? `left: ${($topPlayer / amountQuestions) * 100}%` : ""}>
+            <div class={progressTopPosition !== 1 ? progressTopPosition === 0 ? "progressValueBegin" : "progressValueEnd" : "progressValueCenter"}>
+                <p bind:this={progressValueTopTxt}
+                   style="font-size: 13px; color: var(--linearGradient-purple2); white-space: nowrap;">
                     Top Spieler {Math.floor(($topPlayer / amountQuestions) * 100)}%</p>
-                <ion-icon name="caret-down" style="color: var(--linearGradient-purple2);"></ion-icon>
-
             </div>
 
         </div>
-        <progress id="progressTop" max={amountQuestions} value={$topPlayer}>{topPlayer}%</progress>
+
+        <div class="progressValue" style="left: {($topPlayer / amountQuestions) * 100}%">
+
+            <div class="progressValueCenter">
+                <ion-icon name="caret-down" style="color: var(--linearGradient-purple2);"></ion-icon>
+            </div>
+
+        </div>
+
+        </div>
+
+
+        <progress bind:this={progressBarTop} id="progressTop" max={amountQuestions} value={$topPlayer}>{topPlayer}%</progress>
     </div>
 
-    <div id="progressPlayerDiv">
-        <progress id="progressPlayer" max={amountQuestions} value={$ownPlayer}>{ownPlayer}%</progress>
-        <div id="progressValuePlayer" style="left: {($ownPlayer / amountQuestions) * 100}%">
 
-            <div style="left: 50%;transform: translateX(-50%); text-align: center">
+
+
+
+    <div id="progressPlayerDiv">
+        <progress bind:this={progressBarPlayer} id="progressPlayer" max={amountQuestions} value={$ownPlayer}>{ownPlayer}%</progress>
+
+        <div class="progressValue" style="left: {($ownPlayer / amountQuestions) * 100}%">
+
+            <div class="progressValueCenter">
                 <ion-icon name="caret-up" style="color: var(--linearGradient-orange2);"></ion-icon>
-                <p style="font-size: 13px; color: var(--linearGradient-orange2); white-space: nowrap;">
+            </div>
+
+        </div>
+
+        <div class="progressValue" style={progressPlayerPosition === 1 ? `left: ${($ownPlayer / amountQuestions) * 100}%` : ""}>
+
+            <div class={progressPlayerPosition !== 1 ? progressPlayerPosition === 0 ? "progressValueBegin" : "progressValueEnd" : "progressValueCenter"}>
+                <p bind:this={progressValuePlayerTxt}
+                   style="font-size: 13px; color: var(--linearGradient-orange2); white-space: nowrap;">
                     Du {Math.floor(($ownPlayer / amountQuestions) * 100)}%</p>
             </div>
 
         </div>
+
 
     </div>
 </main>
@@ -109,14 +205,26 @@
     }
 
 
-    #progressPlayerDiv, #progressTopDiv {
+    .progressValue {
         position: relative;
-        text-align: center;
-        overflow: hidden;
     }
 
-    #progressValuePlayer, #progressValueTop {
-        position: relative;
+    .progressValueBegin {
+        display: flex;
+        flex-direction: column;
+        align-items: start;
+    }
+    .progressValueEnd {
+        display: flex;
+        flex-direction: column;
+        align-items: end;
+    }
+
+    .progressValueCenter {
+        transform: translateX(-50%);
+        display: flex;
+        align-items: center;
+        flex-direction: column;
     }
 
 </style>
