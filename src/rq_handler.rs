@@ -78,7 +78,25 @@ async fn handle_instructions(body:Value, client:Object, context:Arc<ExecutionCon
             Some(json!("ok"))
         },
         "skip" => {
-            Some(json!(db::skip(&client, &auth_token, context.clone()).await))
+            let skip_success = db::skip(&client, &auth_token, context.clone()).await;
+            let remaining_skips = db::get_remaining_skips(&client, &auth_token, context.clone());
+
+            let ranking = db::retrieve_ranking(&client).await;
+            let rank = match db::get_rank(&client, &auth_token).await {
+                Some(v) => Value::Number(v.into()),
+                None => Value::Null
+            };
+            let top_rank = db::get_top_progress(&client).await.unwrap_or(0);
+
+            Some(json!({
+                "skip_success": skip_success,
+                "remaining_skips": remaining_skips,
+                "count": &context.question_set.count(),
+                "progress": db::get_progress(&client, &auth_token).await,
+                "rank": rank,
+                "top_progress": top_rank,
+                "nickname": db::get_own_nickname(&client, &auth_token).await
+            }))
         },
         "ranking" => {
             let ranking = db::retrieve_ranking(&client).await;

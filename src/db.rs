@@ -75,6 +75,12 @@ pub async fn get_own_nickname(client: &Object, token:&AuthToken) -> Value {
     Value::Null
 }
 
+pub async fn get_remaining_skips(client: &Object, token: &AuthToken, context: Arc<ExecutionContext>) -> i32{
+    let used_skips = client.query("select used_skips from kwiez_users where token=$1;", &[&token.0]).await.expect("Could not get used skips");
+    let used_skips:i32 = used_skips.get(0).expect("Could not get used skips").get(0);
+    used_skips-MAX_SKIPS
+}
+
 pub async fn skip(client: &Object, token: &AuthToken, context: Arc<ExecutionContext>) -> bool{
     if !token_exits(client, token).await {return false}
     let progress = get_progress(client, token).await;
