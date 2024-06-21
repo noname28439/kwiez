@@ -51,7 +51,7 @@ async fn main() {
     let pool = Pool::builder(mgr).config(PoolConfig::new(16)).max_size(16).build().unwrap();
 
     pool.get().await.unwrap().query("create table if not exists kwiez_users (\
-    token varchar(64) not null, \
+    token varchar(64) not null unique primary key, \
     nickname varchar, \
     progress int default 0, \
     used_skips int default 0, \

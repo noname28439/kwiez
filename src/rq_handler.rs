@@ -34,7 +34,7 @@ async fn handle_instructions(body:Value, client:Object, context:Arc<ExecutionCon
                 let mut a = context.timeouts.lock().await;
                 let timeout = a.entry(auth_token.0.clone()).or_insert(0);
                 *timeout += 60;
-                if(*timeout>=BLOCK_TIMEOUT){
+                if *timeout>=BLOCK_TIMEOUT{
                     return Some(json!({"error": "blocked", "timeout": *timeout-BLOCK_TIMEOUT+1}))
                 }
             }
