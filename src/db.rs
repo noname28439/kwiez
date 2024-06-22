@@ -23,7 +23,7 @@ async fn token_exits(client:&Object, token:&AuthToken) -> bool{
 }
 
 async fn create_user(client: &Object, token:&AuthToken){
-    client.query("insert into kwiez_users values ($1);", &[&token.0]).await.expect("Could not create user");
+    client.query("insert into kwiez_users (token) values ($1);", &[&token.0]).await.expect("Could not create user");
 }
 
 async fn increase_progress(client: &Object, token:&AuthToken){
@@ -77,7 +77,10 @@ pub async fn get_own_nickname(client: &Object, token:&AuthToken) -> Value {
 
 pub async fn get_remaining_skips(client: &Object, token: &AuthToken, context: Arc<ExecutionContext>) -> i32{
     let used_skips = client.query("select used_skips from kwiez_users where token=$1;", &[&token.0]).await.expect("Could not get used skips");
-    let used_skips:i32 = used_skips.get(0).expect("Could not get used skips").get(0);
+    let used_skips:i32 = match used_skips.get(0){
+        Some(v) => v.get(0),
+        None => MAX_SKIPS
+    };
     MAX_SKIPS-used_skips
 }
 
