@@ -10,5 +10,5 @@ export async function sync() {
     ranking.set(rankingRes);
     cq.set(cqRes)
 
-    return({stats, ranking, cq})
+    return({stats, ranking, cq, statsRes})
 }

@@ -2,6 +2,7 @@
     import Header from "./components/Header.svelte";
     import EventProgress from "./components/EventProgress.svelte";
     import QuestionCard from "./components/QuestionCard.svelte";
+    import WinnerCard from "./components/WinnerCard.svelte";
     import {useEndpoint} from "./endpoints.js";
     import {fly} from "svelte/transition";
     import {sync} from "./components/networking.js";
@@ -11,6 +12,7 @@
     const promise = sync();
 
 
+
 </script>
 
 <main>
@@ -18,12 +20,12 @@
 
         {#await promise}
             <p>Laden</p>
-        {:then {stats, ranking, cq}}
+        {:then {stats, ranking, cq, statsRes}}
 
             {#if stats}
                 <Header/>
             {:else}
-                <Header />
+                <Header/>
             {/if}
 
 
@@ -36,8 +38,13 @@
                 {/if}
 
             </div>
-            <div id="QuestionCard" transition:fly={{ y: 50 }}>
-                <QuestionCard />
+            <div id="Content" transition:fly={{ y: 50 }}>
+                {#if statsRes.count > statsRes.progress}
+                    <QuestionCard />
+                {:else}
+                    <WinnerCard />
+
+                {/if}
             </div>
 
         {/await}
@@ -53,8 +60,10 @@
         margin-top: 2em;
     }
 
-    #QuestionCard {
+    #Content {
         margin-top: 3em;
+        padding-bottom: 10em;
+        word-break: break-word;
     }
 
     @media (min-width: 640px) {

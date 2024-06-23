@@ -16,7 +16,6 @@
     stats.subscribe((value) => {
         questionNumber = value.progress;
         remainSkipps = value.remaining_skips;
-        console.log(value)
     });
     //----------
 
