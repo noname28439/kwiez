@@ -176,7 +176,9 @@ fn compare_answers(provided_answer:&String, question:&Frage) -> bool{
 
             return answer_num==provided_answer_num;
         }else {
-            return provided_answer.contains(&answer);
+            if provided_answer.contains(&answer){
+                return true
+            }
         }
     }
     false
