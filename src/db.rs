@@ -174,7 +174,9 @@ fn compare_answers(provided_answer:&String, question:&Frage) -> bool{
             };
             let answer_num = answer.parse::<f64>().unwrap();
 
-            return answer_num==provided_answer_num;
+            if answer_num==provided_answer_num{
+                return true
+            }
         }else {
             if provided_answer.contains(&answer){
                 return true
