@@ -35,7 +35,7 @@
         </button>
     </div>
 
-    <h1>Schnitzeljagd</h1>
+    <h1>AEG QUIZ</h1>
 
     <div id="aegEvent">
         <img
@@ -43,7 +43,7 @@
             alt="Einstein Logo"
             id="einsteinLogo"
         />
-        <p style="color: #dbdbdb;">AEG Event</p>
+        <p style="color: #dbdbdb;">Abistreich Event</p>
     </div>
 </main>
 
